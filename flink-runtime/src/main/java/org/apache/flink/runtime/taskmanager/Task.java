@@ -518,6 +518,7 @@ public class Task implements Runnable, TaskActions, CheckpointListener {
 	 * Starts the task's thread.
 	 */
 	public void startTaskThread() {
+		System.out.println("tasl start");
 		executingThread.start();
 	}
 
@@ -526,6 +527,7 @@ public class Task implements Runnable, TaskActions, CheckpointListener {
 	 */
 	@Override
 	public void run() {
+		System.out.println("tasl run ");
 
 		// ----------------------------
 		//  Initial State transition
@@ -576,14 +578,14 @@ public class Task implements Runnable, TaskActions, CheckpointListener {
 			// ----------------------------
 
 			// activate safety net for task thread
-			LOG.info("Creating FileSystem stream leak safety net for task {}", this);
+			//LOG.info("Creating FileSystem stream leak safety net for task {}", this);
 			FileSystemSafetyNet.initializeSafetyNetForThread();
 
 			blobService.getPermanentBlobService().registerJob(jobId);
 
 			// first of all, get a user-code classloader
 			// this may involve downloading the job's JAR files and/or classes
-			LOG.info("Loading JAR files for task {}.", this);
+			//LOG.info("Loading JAR files for task {}.", this);
 
 			userCodeClassLoader = createUserCodeClassloader();
 			final ExecutionConfig executionConfig = serializedExecutionConfig.deserializeValue(userCodeClassLoader);
@@ -609,7 +611,7 @@ public class Task implements Runnable, TaskActions, CheckpointListener {
 			// the registration must also strictly be undone
 			// ----------------------------------------------------------------
 
-			LOG.info("Registering task at network: {}.", this);
+			//LOG.info("Registering task at network: {}.", this);
 
 			network.registerTask(this);
 
@@ -708,6 +710,7 @@ public class Task implements Runnable, TaskActions, CheckpointListener {
 			executingThread.setContextClassLoader(userCodeClassLoader);
 
 			// run the invokable
+			// TODO: 22/07/2019 OneInputStreamTask
 			invokable.invoke();
 
 			// make sure, we enter the catch block if the task leaves the invoke() method due
@@ -912,9 +915,9 @@ public class Task implements Runnable, TaskActions, CheckpointListener {
 	private boolean transitionState(ExecutionState currentState, ExecutionState newState, Throwable cause) {
 		if (STATE_UPDATER.compareAndSet(this, currentState, newState)) {
 			if (cause == null) {
-				LOG.info("{} ({}) switched from {} to {}.", taskNameWithSubtask, executionId, currentState, newState);
+				//LOG.info("{} ({}) switched from {} to {}.", taskNameWithSubtask, executionId, currentState, newState);
 			} else {
-				LOG.info("{} ({}) switched from {} to {}.", taskNameWithSubtask, executionId, currentState, newState, cause);
+				//LOG.info("{} ({}) switched from {} to {}.", taskNameWithSubtask, executionId, currentState, newState, cause);
 			}
 
 			return true;

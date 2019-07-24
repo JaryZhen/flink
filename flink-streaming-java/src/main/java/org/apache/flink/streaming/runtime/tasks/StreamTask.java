@@ -241,7 +241,7 @@ public abstract class StreamTask<OUT, OP extends StreamOperator<OUT>>
 		boolean disposed = false;
 		try {
 			// -------- Initialize ---------
-			LOG.debug("Initializing {}.", getName());
+			LOG.info("Initializing {}.", getName());
 
 			asyncOperationsThreadPool = Executors.newCachedThreadPool();
 
@@ -268,6 +268,7 @@ public abstract class StreamTask<OUT, OP extends StreamOperator<OUT>>
 			headOperator = operatorChain.getHeadOperator();
 
 			// task specific initialization
+			// TODO: 22/07/2019  OneInputStreamTask
 			init();
 
 			// save the work of reloading state, etc, if the task is already canceled
@@ -276,7 +277,8 @@ public abstract class StreamTask<OUT, OP extends StreamOperator<OUT>>
 			}
 
 			// -------- Invoke --------
-			LOG.debug("Invoking {}", getName());
+			System.out.println("hahha");
+			LOG.info("Invoking {}", getName());
 
 			// we need to make sure that any triggers scheduled in open() cannot be
 			// executed before all operators are opened
@@ -297,6 +299,7 @@ public abstract class StreamTask<OUT, OP extends StreamOperator<OUT>>
 
 			// let the task do its work
 			isRunning = true;
+			// TODO: 22/07/2019  
 			run();
 
 			// if this left the run() method cleanly despite the fact that this was canceled,

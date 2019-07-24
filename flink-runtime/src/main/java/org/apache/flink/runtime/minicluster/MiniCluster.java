@@ -613,6 +613,7 @@ public class MiniCluster implements JobExecutorService, AutoCloseableAsync {
 	public JobExecutionResult executeJobBlocking(JobGraph job) throws JobExecutionException, InterruptedException {
 		checkNotNull(job, "job is null");
 
+		// todo jary: submitJob will create JobMangerRuner ,it will run job
 		final CompletableFuture<JobSubmissionResult> submissionFuture = submitJob(job);
 
 		final CompletableFuture<JobResult> jobResultFuture = submissionFuture.thenCompose(
@@ -651,7 +652,8 @@ public class MiniCluster implements JobExecutorService, AutoCloseableAsync {
 		final CompletableFuture<Void> jarUploadFuture = uploadAndSetJobFiles(blobServerAddressFuture, jobGraph);
 
 		final CompletableFuture<Acknowledge> acknowledgeCompletableFuture = jarUploadFuture.thenCompose(
-			(Void ack) -> dispatcherGateway.submitJob(jobGraph, rpcTimeout));
+			(Void ack) ->
+				dispatcherGateway.submitJob(jobGraph, rpcTimeout));
 
 		return acknowledgeCompletableFuture.thenApply(
 			(Acknowledge ignored) -> new JobSubmissionResult(jobGraph.getJobID()));

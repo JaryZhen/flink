@@ -280,6 +280,7 @@ public class Execution implements AccessExecution, Archiveable<ArchivedExecution
 	@VisibleForTesting
 	boolean tryAssignResource(final LogicalSlot logicalSlot) {
 		checkNotNull(logicalSlot);
+		System.out.println("Jary：slot tryAssignResource");
 
 		// only allow to set the assigned resource in state SCHEDULED or CREATED
 		// note: we also accept resource assignment when being in state CREATED for testing purposes
@@ -611,6 +612,8 @@ public class Execution implements AccessExecution, Archiveable<ArchivedExecution
 
 			final TaskManagerGateway taskManagerGateway = slot.getTaskManagerGateway();
 
+			LOG.info("Jary： RpcTaskManagerGateway deploy() " + deployment.toString());
+			// TODO: 19/07/2019  RpcTaskManagerGateway
 			final CompletableFuture<Acknowledge> submitResultFuture = taskManagerGateway.submitTask(deployment, rpcTimeout);
 
 			submitResultFuture.whenCompleteAsync(

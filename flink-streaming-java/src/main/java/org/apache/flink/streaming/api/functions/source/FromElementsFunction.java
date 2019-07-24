@@ -161,6 +161,7 @@ public class FromElementsFunction<T> implements SourceFunction<T>, CheckpointedF
 			}
 
 			synchronized (lock) {
+				// TODO: 24/07/2019  StreamSourceContexts
 				ctx.collect(next);
 				numElementsEmitted++;
 			}

@@ -513,7 +513,9 @@ public abstract class Dispatcher extends FencedRpcEndpoint<DispatcherId> impleme
 				return CompletableFuture.completedFuture(JobResult.createFrom(archivedExecutionGraph));
 			}
 		} else {
-			return jobManagerRunnerFuture.thenCompose(JobManagerRunner::getResultFuture).thenApply(JobResult::createFrom);
+			return jobManagerRunnerFuture.
+				thenCompose(JobManagerRunner::getResultFuture)
+				.thenApply(JobResult::createFrom);
 		}
 	}
 

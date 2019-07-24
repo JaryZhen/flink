@@ -1009,6 +1009,7 @@ public class JobMaster extends FencedRpcEndpoint<JobMasterId> implements JobMast
 
 		log.info("Starting execution of job {} ({})", jobGraph.getName(), jobGraph.getJobID());
 
+		// TODO: 19/07/2019 jary:
 		resetAndScheduleExecutionGraph();
 
 		return Acknowledge.get();
@@ -1110,6 +1111,7 @@ public class JobMaster extends FencedRpcEndpoint<JobMasterId> implements JobMast
 				getMainThreadExecutor());
 		}
 
+		// TODO: 19/07/2019 jary:
 		executionGraphAssignedFuture.thenRun(this::scheduleExecutionGraph);
 	}
 
@@ -1246,6 +1248,7 @@ public class JobMaster extends FencedRpcEndpoint<JobMasterId> implements JobMast
 
 		if (newJobStatus.isGloballyTerminalState()) {
 			final ArchivedExecutionGraph archivedExecutionGraph = ArchivedExecutionGraph.createFrom(executionGraph);
+			///
 			scheduledExecutorService.execute(() -> jobCompletionActions.jobReachedGloballyTerminalState(archivedExecutionGraph));
 		}
 	}

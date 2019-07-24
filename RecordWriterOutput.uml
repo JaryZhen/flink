@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>org.apache.flink.streaming.runtime.io.RecordWriterOutput</OriginalElement>
+  <nodes>
+    <node x="32.66666666666663" y="237.0">org.apache.flink.streaming.api.operators.StreamOperator</node>
+    <node x="486.66666666666663" y="237.0">org.apache.flink.streaming.runtime.io.StreamRecordWriter</node>
+    <node x="475.91666666666663" y="158.0">org.apache.flink.runtime.io.network.api.writer.RecordWriter</node>
+    <node x="177.47453703703704" y="79.0">org.apache.flink.util.Collector</node>
+    <node x="210.66666666666666" y="237.0">org.apache.flink.streaming.runtime.tasks.OperatorChain.WatermarkGaugeExposingOutput</node>
+    <node x="159.97453703703704" y="158.0">org.apache.flink.streaming.api.operators.Output</node>
+    <node x="624.9166666666666" y="158.0">org.apache.flink.annotation.Internal</node>
+    <node x="0.0" y="79.0">org.apache.flink.annotation.PublicEvolving</node>
+    <node x="175.83333333333326" y="0.0">org.apache.flink.annotation.Public</node>
+    <node x="467.6898148148148" y="316.0">org.apache.flink.streaming.runtime.io.RecordWriterOutput</node>
+    <node x="22.298611111111086" y="316.0">org.apache.flink.streaming.api.operators.AbstractStreamOperator</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="org.apache.flink.streaming.api.operators.AbstractStreamOperator" target="org.apache.flink.streaming.api.operators.Output">
+      <point x="24.875" y="-14.5" />
+      <point x="146.6736111111111" y="296.0" />
+      <point x="189.16666666666666" y="296.0" />
+      <point x="189.16666666666666" y="212.0" />
+      <point x="194.47453703703704" y="212.0" />
+      <point x="-11.5" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.runtime.io.RecordWriterOutput" target="org.apache.flink.streaming.runtime.io.StreamRecordWriter">
+      <point x="21.625" y="-14.5" />
+      <point x="575.8148148148148" y="286.0" />
+      <point x="615.6666666666666" y="286.0" />
+      <point x="43.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.runtime.tasks.OperatorChain.WatermarkGaugeExposingOutput" target="org.apache.flink.streaming.api.operators.Output">
+      <point x="0.0" y="-14.5" />
+      <point x="338.66666666666663" y="212.0" />
+      <point x="240.47453703703704" y="212.0" />
+      <point x="34.5" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.api.operators.AbstractStreamOperator" target="org.apache.flink.annotation.PublicEvolving">
+      <point x="-74.625" y="-14.5" />
+      <point x="47.173611111111086" y="296.0" />
+      <point x="22.16666666666663" y="296.0" />
+      <point x="-45.66666666666663" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.api.operators.Output" target="org.apache.flink.annotation.PublicEvolving">
+      <point x="-23.0" y="-14.5" />
+      <point x="182.97453703703704" y="133.0" />
+      <point x="114.16666666666663" y="133.0" />
+      <point x="45.66666666666663" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.api.operators.AbstractStreamOperator" target="org.apache.flink.streaming.api.operators.StreamOperator">
+      <point x="-24.875" y="-14.5" />
+      <point x="96.92361111111109" y="296.0" />
+      <point x="105.66666666666663" y="296.0" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.runtime.io.RecordWriterOutput" target="org.apache.flink.annotation.Internal">
+      <point x="64.87499999999997" y="-14.5" />
+      <point x="619.0648148148148" y="296.0" />
+      <point x="695.4166666666666" y="296.0" />
+      <point x="23.5" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.runtime.io.RecordWriterOutput" target="org.apache.flink.streaming.runtime.tasks.OperatorChain.WatermarkGaugeExposingOutput">
+      <point x="-64.875" y="-14.5" />
+      <point x="489.3148148148148" y="296.0" />
+      <point x="338.66666666666663" y="296.0" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.runtime.io.StreamRecordWriter" target="org.apache.flink.runtime.io.network.api.writer.RecordWriter">
+      <point x="0.0" y="-14.5" />
+      <point x="32.25" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.api.operators.StreamOperator" target="org.apache.flink.annotation.PublicEvolving">
+      <point x="-36.5" y="-14.5" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.annotation.PublicEvolving" target="org.apache.flink.annotation.Public">
+      <point x="0.0" y="-14.5" />
+      <point x="68.5" y="54.0" />
+      <point x="189.99999999999994" y="54.0" />
+      <point x="-28.333333333333314" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.util.Collector" target="org.apache.flink.annotation.Public">
+      <point x="-5.6843418860808015E-14" y="-14.5" />
+      <point x="228.97453703703698" y="54.0" />
+      <point x="218.33333333333326" y="54.0" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.annotation.Internal" target="org.apache.flink.annotation.Public">
+      <point x="0.0" y="-14.5" />
+      <point x="671.9166666666666" y="54.0" />
+      <point x="246.66666666666657" y="54.0" />
+      <point x="28.333333333333314" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.api.operators.Output" target="org.apache.flink.util.Collector">
+      <point x="23.0" y="-14.5" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.runtime.io.StreamRecordWriter" target="org.apache.flink.annotation.Internal">
+      <point x="57.33333333333334" y="-14.5" />
+      <point x="630.0" y="212.0" />
+      <point x="648.4166666666666" y="212.0" />
+      <point x="-23.5" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.api.operators.StreamOperator" target="org.apache.flink.streaming.api.operators.Output">
+      <point x="36.5" y="-14.5" />
+      <point x="142.16666666666663" y="212.0" />
+      <point x="171.47453703703704" y="212.0" />
+      <point x="-34.5" y="14.5" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="1.0" x="260.5" y="172.5" />
+  <SelectedNodes />
+  <Categories />
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

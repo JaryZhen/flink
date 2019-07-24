@@ -142,7 +142,7 @@ class TaskManager(
 
   /** The TaskManager's physical execution resources */
   protected val resources = HardwareDescription.extractFromSystem(memoryManager.getMemorySize())
-
+4
   /** Registry of all tasks currently executed by this TaskManager */
   protected val runningTasks = new java.util.HashMap[ExecutionAttemptID, Task]()
 

@@ -101,6 +101,7 @@ public class StreamSourceContexts {
 		@Override
 		public void collect(T element) {
 			synchronized (lock) {
+				// TODO: 24/07/2019 AbstractStreamOperator
 				output.collect(reuse.replace(element));
 			}
 		}

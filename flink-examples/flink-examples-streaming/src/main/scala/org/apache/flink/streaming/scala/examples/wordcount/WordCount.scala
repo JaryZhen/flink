@@ -54,7 +54,8 @@ object WordCount {
     val env = StreamExecutionEnvironment.getExecutionEnvironment
 
     // make parameters available in the web interface
-    env.getConfig.setGlobalJobParameters(params)
+    //env.getConfig.setGlobalJobParameters(params)
+    env.setParallelism(2)
 
     // get input data
     val text =
@@ -70,12 +71,12 @@ object WordCount {
 
     val counts: DataStream[(String, Int)] = text
       // split up the lines in pairs (2-tuples) containing: (word,1)
-      .flatMap(_.toLowerCase.split("\\W+"))
-      .filter(_.nonEmpty)
-      .map((_, 1))
+      .flatMap(_.toLowerCase.split("\\W+")).uid("1.flat")
+      .filter(_.nonEmpty).uid("2.filter")
+      .map((_, 1)).uid("3.map")
       // group by the tuple field "0" and sum up tuple field "1"
       .keyBy(0)
-      .sum(1)
+      .sum(1).uid("5.keyby")
 
     // emit result
     if (params.has("output")) {
@@ -86,6 +87,6 @@ object WordCount {
     }
 
     // execute program
-    env.execute("Streaming WordCount")
+    env.execute("Scala Streaming WordCount")
   }
 }

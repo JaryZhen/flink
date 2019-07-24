@@ -874,6 +874,7 @@ public class ExecutionGraph implements AccessExecutionGraph {
 					newSchedulingFuture = scheduleLazy(slotProvider);
 					break;
 
+				// TODO: 19/07/2019 jary:
 				case EAGER:
 					newSchedulingFuture = scheduleEager(slotProvider, allocationTimeout);
 					break;
@@ -966,7 +967,11 @@ public class ExecutionGraph implements AccessExecutionGraph {
 			.thenAccept(
 				(Collection<Execution> executionsToDeploy) -> {
 					for (Execution execution : executionsToDeploy) {
+						System.out.println(execution.getVertex().getTaskName());
+					}
+					for (Execution execution : executionsToDeploy) {
 						try {
+							// TODO: 19/07/2019 jary:
 							execution.deploy();
 						} catch (Throwable t) {
 							throw new CompletionException(

@@ -692,6 +692,8 @@ public class SlotPool extends RpcEndpoint implements SlotPoolGateway, AllocatedS
 		if (resourceManagerGateway == null) {
 			stashRequestWaitingForResourceManager(pendingRequest);
 		} else {
+			System.out.println("Jary：slot connectToResourceManager 696");
+
 			requestSlotFromResourceManager(resourceManagerGateway, pendingRequest);
 		}
 

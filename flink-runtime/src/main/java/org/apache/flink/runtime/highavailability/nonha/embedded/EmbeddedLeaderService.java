@@ -273,7 +273,7 @@ public class EmbeddedLeaderService {
 
 				LOG.info("Proposing leadership to contender {} @ {}",
 						leaderService.contender, leaderService.contender.getAddress());
-
+				// TODO: 19/07/2019  jary:
 				notificationExecutor.execute(
 						new GrantLeadershipCall(leaderService, leaderSessionId, LOG));
 			}
@@ -461,6 +461,7 @@ public class EmbeddedLeaderService {
 			final LeaderContender contender = leaderElectionService.contender;
 
 			try {
+				// TODO: 19/07/2019 jary: JobManagerRunner
 				contender.grantLeadership(leaderSessionId);
 			}
 			catch (Throwable t) {

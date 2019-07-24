@@ -199,6 +199,7 @@ public class JobManagerRunner implements LeaderContender, OnCompletionActions, A
 
 	public void start() throws Exception {
 		try {
+			// TODO: 19/07/2019 jary: EmbeddedLeaderElectionService
 			leaderElectionService.start(this);
 		} catch (Exception e) {
 			log.error("Could not start the JobManager because the leader election service did not start.", e);
@@ -331,6 +332,7 @@ public class JobManagerRunner implements LeaderContender, OnCompletionActions, A
 
 			runningJobsRegistry.setJobRunning(jobGraph.getJobID());
 
+			// TODO: 19/07/2019 jary:
 			final CompletableFuture<Acknowledge> startFuture = jobMaster.start(new JobMasterId(leaderSessionId), rpcTimeout);
 			final CompletableFuture<JobMasterGateway> currentLeaderGatewayFuture = leaderGatewayFuture;
 

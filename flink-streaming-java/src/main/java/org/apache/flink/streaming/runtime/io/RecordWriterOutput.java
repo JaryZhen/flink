@@ -86,6 +86,7 @@ public class RecordWriterOutput<OUT> implements OperatorChain.WatermarkGaugeExpo
 			return;
 		}
 
+		// TODO: 24/07/2019 jary: 
 		pushToRecordWriter(record);
 	}
 
