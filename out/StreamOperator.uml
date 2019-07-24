@@ -1,0 +1,464 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>org.apache.flink.streaming.api.operators.StreamOperator</OriginalElement>
+  <nodes>
+    <node x="32.25" y="356.0">org.apache.flink.streaming.runtime.tasks.TwoInputStreamTask</node>
+    <node x="480.25000000000006" y="717.0">org.apache.flink.runtime.rpc.RpcEndpoint</node>
+    <node x="0.0" y="475.0">org.apache.flink.streaming.runtime.tasks.TaskCheckpointingBehaviourTest.TestStreamTask</node>
+    <node x="621.3088768115946" y="89.0">org.apache.flink.streaming.runtime.streamstatus.StreamStatusProvider</node>
+    <node x="427.2500000000001" y="356.0">org.apache.flink.streaming.runtime.tasks.SourceStreamTask</node>
+    <node x="685.3188405797102" y="628.0">org.apache.flink.runtime.rpc.RpcGateway</node>
+    <node x="823.3088768115946" y="89.0">org.apache.flink.runtime.taskmanager.TaskActions</node>
+    <node x="1644.0" y="628.0">org.apache.flink.runtime.highavailability.nonha.embedded.EmbeddedLeaderService</node>
+    <node x="1447.5588768115945" y="554.0">org.apache.flink.streaming.runtime.tasks.TaskCheckpointingBehaviourTest.FilterOperator</node>
+    <node x="1188.2364130434785" y="356.0">org.apache.flink.streaming.runtime.tasks.StreamTaskTerminationTest.BlockingStreamTask</node>
+    <node x="122.86231884057975" y="954.0">org.apache.flink.runtime.dispatcher.StandaloneDispatcher</node>
+    <node x="1289.3088768115945" y="89.0">org.apache.flink.streaming.api.operators.KeyContext</node>
+    <node x="379.92119565217376" y="267.0">org.apache.flink.streaming.runtime.tasks.StreamTask</node>
+    <node x="1454.0" y="707.0">org.apache.flink.runtime.rpc.akka.AkkaRpcService</node>
+    <node x="1377.8088768115945" y="475.0">org.apache.flink.streaming.api.operators.StreamFilter</node>
+    <node x="1636.892210144928" y="475.0">org.apache.flink.streaming.runtime.operators.windowing.WindowOperator</node>
+    <node x="220.8088768115946" y="168.0">org.apache.flink.runtime.jobgraph.tasks.AbstractInvokable</node>
+    <node x="325.8623188405798" y="954.0">org.apache.flink.runtime.dispatcher.MiniDispatcher</node>
+    <node x="0.0" y="717.0">org.apache.flink.runtime.webmonitor.RestfulGateway</node>
+    <node x="1612.392210144928" y="554.0">org.apache.flink.streaming.runtime.operators.windowing.EvictingWindowOperator</node>
+    <node x="993.25" y="628.0">org.apache.flink.runtime.rpc.StartStoppable</node>
+    <node x="1381.2364130434785" y="356.0">org.apache.flink.streaming.api.operators.OneInputStreamOperator</node>
+    <node x="1887.0" y="628.0">org.apache.flink.streaming.runtime.io.RecordWriterOutput</node>
+    <node x="587.4211956521738" y="475.0">org.apache.flink.streaming.runtime.tasks.StreamIterationTail</node>
+    <node x="270.75000000000006" y="875.0">org.apache.flink.runtime.dispatcher.Dispatcher</node>
+    <node x="217.25000000000006" y="796.0">org.apache.flink.runtime.jobmanager.SubmittedJobGraphStore.SubmittedJobGraphListener</node>
+    <node x="1686.6530797101452" y="356.0">org.apache.flink.streaming.api.operators.AbstractUdfStreamOperator</node>
+    <node x="1153.25" y="628.0">org.apache.flink.runtime.rpc.MainThreadExecutable</node>
+    <node x="865.7500000000002" y="875.0">org.apache.flink.runtime.rpc.akka.FencedAkkaInvocationHandler</node>
+    <node x="816.25" y="717.0">org.apache.flink.runtime.rpc.akka.AkkaBasedEndpoint</node>
+    <node x="1548.177536231884" y="0.0">org.apache.flink.annotation.PublicEvolving</node>
+    <node x="1154.3088768115945" y="89.0">org.apache.flink.util.Disposable</node>
+    <node x="30.25" y="796.0">org.apache.flink.runtime.dispatcher.DispatcherGateway</node>
+    <node x="1881.5045289855072" y="475.0">org.apache.flink.streaming.api.operators.KeyedProcessOperator</node>
+    <node x="399.8088768115946" y="168.0">org.apache.flink.streaming.runtime.tasks.AsyncExceptionHandler</node>
+    <node x="1469.0" y="628.0">org.apache.flink.runtime.rpc.RpcService</node>
+    <node x="167.0" y="475.0">org.apache.flink.streaming.runtime.tasks.StreamIterationHead</node>
+    <node x="654.6539855072465" y="875.0">org.apache.flink.runtime.jobmaster.JobMaster</node>
+    <node x="1012.2364130434785" y="356.0">org.apache.flink.streaming.runtime.tasks.StreamTaskTest.NoOpStreamTask</node>
+    <node x="1178.0" y="717.0">org.apache.flink.runtime.rpc.FencedMainThreadExecutable</node>
+    <node x="627.25" y="717.0">org.apache.flink.runtime.rpc.FencedRpcGateway</node>
+    <node x="1934.046195652174" y="356.0">org.apache.flink.streaming.api.operators.Triggerable</node>
+    <node x="458.25000000000006" y="796.0">org.apache.flink.runtime.rpc.FencedRpcEndpoint</node>
+    <node x="967.3088768115946" y="89.0">org.apache.flink.runtime.state.CheckpointListener</node>
+    <node x="1297.5588768115945" y="554.0">org.apache.flink.streaming.runtime.tasks.TaskCheckpointingBehaviourTest.TestOperator</node>
+    <node x="614.8088768115946" y="168.0">org.apache.flink.streaming.runtime.streamstatus.StreamStatusMaintainer</node>
+    <node x="230.2500000000001" y="356.0">org.apache.flink.streaming.runtime.tasks.OneInputStreamTask</node>
+    <node x="1008.25" y="717.0">org.apache.flink.runtime.rpc.RpcServer</node>
+    <node x="1517.1485507246382" y="267.0">org.apache.flink.streaming.api.operators.AbstractStreamOperator</node>
+    <node x="1199.177536231884" y="168.0">org.apache.flink.streaming.api.operators.StreamOperator</node>
+    <node x="924.677536231884" y="168.0">org.apache.flink.runtime.taskmanager.Task</node>
+    <node x="677.8088768115946" y="267.0">org.apache.flink.streaming.runtime.tasks.OperatorChain</node>
+    <node x="876.5688405797102" y="796.0">org.apache.flink.runtime.rpc.akka.AkkaInvocationHandler</node>
+    <node x="1678.6530797101452" y="89.0">org.apache.flink.streaming.api.operators.OutputTypeConfigurable</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="org.apache.flink.streaming.runtime.tasks.StreamTask" target="org.apache.flink.runtime.jobgraph.tasks.AbstractInvokable">
+      <point x="-40.0" y="-14.5" />
+      <point x="399.92119565217376" y="247.0" />
+      <point x="300.3088768115946" y="247.0" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.runtime.jobmaster.JobMaster" target="org.apache.flink.runtime.rpc.FencedRpcGateway">
+      <point x="0.0" y="-14.5" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.runtime.tasks.TaskCheckpointingBehaviourTest.TestOperator" target="org.apache.flink.streaming.api.operators.StreamFilter">
+      <point x="0.0" y="-14.5" />
+      <point x="1362.5588768115945" y="529.0" />
+      <point x="1408.0588768115945" y="529.0" />
+      <point x="-30.25" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.runtime.rpc.akka.FencedAkkaInvocationHandler" target="org.apache.flink.runtime.rpc.akka.AkkaInvocationHandler">
+      <point x="-1.1368683772161603E-13" y="-14.5" />
+      <point x="982.75" y="850.0" />
+      <point x="971.5688405797102" y="850.0" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.runtime.rpc.akka.AkkaRpcService" target="org.apache.flink.runtime.rpc.RpcService">
+      <point x="0.0" y="-14.5" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.api.operators.StreamFilter" target="org.apache.flink.streaming.api.operators.AbstractUdfStreamOperator">
+      <point x="30.25" y="-14.5" />
+      <point x="1468.5588768115945" y="435.0" />
+      <point x="1723.6530797101452" y="435.0" />
+      <point x="-74.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.api.operators.KeyedProcessOperator" target="org.apache.flink.streaming.api.operators.Triggerable">
+      <point x="63.33333333333326" y="-14.5" />
+      <point x="2039.8378623188405" y="455.0" />
+      <point x="2021.796195652174" y="455.0" />
+      <point x="29.25" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.runtime.rpc.RpcServer" target="org.apache.flink.runtime.rpc.MainThreadExecutable">
+      <point x="36.66666666666674" y="-14.5" />
+      <point x="1099.9166666666667" y="697.0" />
+      <point x="1200.0" y="697.0" />
+      <point x="-46.75" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.runtime.rpc.FencedRpcEndpoint" target="org.apache.flink.runtime.rpc.RpcEndpoint">
+      <point x="0.0" y="-14.5" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.runtime.tasks.StreamTaskTest.NoOpStreamTask" target="org.apache.flink.streaming.runtime.tasks.StreamTask">
+      <point x="-39.0" y="-14.5" />
+      <point x="1051.2364130434785" y="326.0" />
+      <point x="463.92119565217376" y="326.0" />
+      <point x="24.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.runtime.rpc.akka.FencedAkkaInvocationHandler" target="org.apache.flink.runtime.rpc.FencedRpcGateway">
+      <point x="-78.00000000000011" y="-14.5" />
+      <point x="904.75" y="850.0" />
+      <point x="852.3188405797102" y="850.0" />
+      <point x="852.3188405797102" y="771.0" />
+      <point x="767.25" y="771.0" />
+      <point x="56.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.api.operators.StreamOperator" target="org.apache.flink.runtime.state.CheckpointListener">
+      <point x="-54.75" y="-14.5" />
+      <point x="1217.427536231884" y="148.0" />
+      <point x="1092.5588768115945" y="148.0" />
+      <point x="41.75" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.runtime.tasks.OneInputStreamTask" target="org.apache.flink.streaming.runtime.tasks.StreamTask">
+      <point x="0.0" y="-14.5" />
+      <point x="318.7500000000001" y="336.0" />
+      <point x="415.92119565217376" y="336.0" />
+      <point x="-24.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.runtime.tasks.TwoInputStreamTask" target="org.apache.flink.streaming.runtime.tasks.StreamTask">
+      <point x="0.0" y="-14.5" />
+      <point x="121.25" y="326.0" />
+      <point x="391.92119565217376" y="326.0" />
+      <point x="-48.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.runtime.state.CheckpointListener" target="org.apache.flink.annotation.PublicEvolving">
+      <point x="0.0" y="-14.5" />
+      <point x="1050.8088768115945" y="49.0" />
+      <point x="1559.5942028985507" y="49.0" />
+      <point x="-57.08333333333326" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.runtime.tasks.TaskCheckpointingBehaviourTest.FilterOperator" target="org.apache.flink.streaming.api.operators.StreamFilter">
+      <point x="0.0" y="-14.5" />
+      <point x="1514.0588768115945" y="529.0" />
+      <point x="1468.5588768115945" y="529.0" />
+      <point x="30.25" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.runtime.dispatcher.Dispatcher" target="org.apache.flink.runtime.dispatcher.DispatcherGateway">
+      <point x="-38.0" y="-14.5" />
+      <point x="289.75000000000006" y="850.0" />
+      <point x="113.75" y="850.0" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.runtime.taskmanager.Task" target="org.apache.flink.runtime.taskmanager.TaskActions">
+      <point x="-19.25" y="-14.5" />
+      <point x="943.927536231884" y="148.0" />
+      <point x="885.3088768115946" y="148.0" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.api.operators.StreamOperator" target="org.apache.flink.util.Disposable">
+      <point x="-18.25" y="-14.5" />
+      <point x="1253.927536231884" y="138.0" />
+      <point x="1211.8088768115945" y="138.0" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.runtime.dispatcher.StandaloneDispatcher" target="org.apache.flink.runtime.dispatcher.Dispatcher">
+      <point x="0.0" y="-14.5" />
+      <point x="214.36231884057975" y="929.0" />
+      <point x="299.25000000000006" y="929.0" />
+      <point x="-28.5" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.api.operators.StreamFilter" target="org.apache.flink.streaming.api.operators.OneInputStreamOperator">
+      <point x="-30.25" y="-14.5" />
+      <point x="1408.0588768115945" y="455.0" />
+      <point x="1415.0697463768117" y="455.0" />
+      <point x="-67.66666666666674" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.api.operators.StreamOperator" target="org.apache.flink.annotation.PublicEvolving">
+      <point x="54.75" y="-14.5" />
+      <point x="1326.927536231884" y="148.0" />
+      <point x="1419.8088768115945" y="148.0" />
+      <point x="1419.8088768115945" y="59.0" />
+      <point x="1582.427536231884" y="59.0" />
+      <point x="-34.25" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.runtime.jobmaster.JobMaster" target="org.apache.flink.runtime.rpc.RpcGateway">
+      <point x="37.66666666666663" y="-14.5" />
+      <point x="748.8206521739131" y="850.0" />
+      <point x="805.75" y="850.0" />
+      <point x="805.75" y="697.0" />
+      <point x="757.6521739130435" y="697.0" />
+      <point x="10.333333333333371" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.runtime.tasks.StreamTaskTerminationTest.BlockingStreamTask" target="org.apache.flink.streaming.api.operators.StreamOperator">
+      <point x="43.25" y="-14.5" />
+      <point x="1317.9864130434785" y="247.0" />
+      <point x="1284.3442028985505" y="247.0" />
+      <point x="12.166666666666629" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.runtime.operators.windowing.EvictingWindowOperator" target="org.apache.flink.streaming.runtime.operators.windowing.WindowOperator">
+      <point x="0.0" y="-14.5" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.runtime.tasks.StreamIterationTail" target="org.apache.flink.streaming.runtime.tasks.OneInputStreamTask">
+      <point x="0.0" y="-14.5" />
+      <point x="668.9211956521738" y="455.0" />
+      <point x="377.7500000000001" y="455.0" />
+      <point x="59.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.runtime.operators.windowing.WindowOperator" target="org.apache.flink.streaming.api.operators.OneInputStreamOperator">
+      <point x="-51.0" y="-14.5" />
+      <point x="1662.392210144928" y="425.0" />
+      <point x="1482.7364130434785" y="425.0" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.runtime.tasks.OperatorChain" target="org.apache.flink.streaming.api.operators.StreamOperator">
+      <point x="34.5" y="-14.5" />
+      <point x="781.3088768115946" y="237.0" />
+      <point x="1235.677536231884" y="237.0" />
+      <point x="-36.5" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.runtime.webmonitor.RestfulGateway" target="org.apache.flink.runtime.rpc.RpcGateway">
+      <point x="0.0" y="-14.5" />
+      <point x="72.0" y="677.0" />
+      <point x="695.6521739130435" y="677.0" />
+      <point x="-51.66666666666663" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.api.operators.KeyedProcessOperator" target="org.apache.flink.streaming.api.operators.OneInputStreamOperator">
+      <point x="-63.33333333333326" y="-14.5" />
+      <point x="1913.171195652174" y="415.0" />
+      <point x="1550.4030797101452" y="415.0" />
+      <point x="67.66666666666674" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.runtime.jobmaster.JobMaster" target="org.apache.flink.runtime.rpc.FencedRpcEndpoint">
+      <point x="-37.66666666666663" y="-14.5" />
+      <point x="673.4873188405799" y="850.0" />
+      <point x="586.5" y="850.0" />
+      <point x="42.75" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.runtime.rpc.RpcEndpoint" target="org.apache.flink.runtime.rpc.RpcGateway">
+      <point x="0.0" y="-14.5" />
+      <point x="543.75" y="687.0" />
+      <point x="716.3188405797102" y="687.0" />
+      <point x="-31.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.api.operators.AbstractStreamOperator" target="org.apache.flink.annotation.PublicEvolving">
+      <point x="49.75" y="-14.5" />
+      <point x="1666.3985507246382" y="69.0" />
+      <point x="1628.0942028985507" y="69.0" />
+      <point x="11.416666666666742" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.api.operators.AbstractStreamOperator" target="org.apache.flink.streaming.api.operators.StreamOperator">
+      <point x="-49.75" y="-14.5" />
+      <point x="1566.8985507246382" y="227.0" />
+      <point x="1333.0108695652173" y="227.0" />
+      <point x="60.83333333333326" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.runtime.tasks.TaskCheckpointingBehaviourTest.TestStreamTask" target="org.apache.flink.streaming.runtime.tasks.OneInputStreamTask">
+      <point x="0.0" y="-14.5" />
+      <point x="73.5" y="445.0" />
+      <point x="259.7500000000001" y="445.0" />
+      <point x="-59.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.runtime.tasks.StreamTask" target="org.apache.flink.streaming.runtime.tasks.AsyncExceptionHandler">
+      <point x="0.0" y="-14.5" />
+      <point x="439.92119565217376" y="217.0" />
+      <point x="497.3088768115946" y="217.0" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.runtime.dispatcher.MiniDispatcher" target="org.apache.flink.runtime.dispatcher.Dispatcher">
+      <point x="0.0" y="-14.5" />
+      <point x="395.3623188405798" y="929.0" />
+      <point x="356.25000000000006" y="929.0" />
+      <point x="28.5" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.runtime.rpc.FencedRpcGateway" target="org.apache.flink.runtime.rpc.RpcGateway">
+      <point x="0.0" y="-14.5" />
+      <point x="711.25" y="697.0" />
+      <point x="736.9855072463768" y="697.0" />
+      <point x="-10.333333333333371" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.runtime.tasks.OperatorChain" target="org.apache.flink.streaming.runtime.streamstatus.StreamStatusMaintainer">
+      <point x="-34.5" y="-14.5" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.api.operators.AbstractUdfStreamOperator" target="org.apache.flink.streaming.api.operators.AbstractStreamOperator">
+      <point x="-74.0" y="-14.5" />
+      <point x="1723.6530797101452" y="336.0" />
+      <point x="1616.6485507246382" y="336.0" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.runtime.rpc.akka.AkkaInvocationHandler" target="org.apache.flink.runtime.rpc.akka.AkkaBasedEndpoint">
+      <point x="-47.5" y="-14.5" />
+      <point x="924.0688405797102" y="771.0" />
+      <point x="902.25" y="771.0" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.api.operators.OutputTypeConfigurable" target="org.apache.flink.annotation.PublicEvolving">
+      <point x="0.0" y="-14.5" />
+      <point x="1779.1530797101452" y="59.0" />
+      <point x="1650.927536231884" y="59.0" />
+      <point x="34.25" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.api.operators.AbstractUdfStreamOperator" target="org.apache.flink.annotation.PublicEvolving">
+      <point x="74.0" y="-14.5" />
+      <point x="1871.6530797101452" y="336.0" />
+      <point x="1890.1530797101452" y="336.0" />
+      <point x="1890.1530797101452" y="49.0" />
+      <point x="1673.7608695652173" y="49.0" />
+      <point x="57.08333333333326" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.runtime.rpc.akka.AkkaInvocationHandler" target="org.apache.flink.runtime.rpc.RpcServer">
+      <point x="47.5" y="-14.5" />
+      <point x="1019.0688405797102" y="771.0" />
+      <point x="1063.25" y="771.0" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.api.operators.StreamOperator" target="org.apache.flink.streaming.api.operators.KeyContext">
+      <point x="18.25" y="-14.5" />
+      <point x="1290.427536231884" y="138.0" />
+      <point x="1349.3088768115945" y="138.0" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.runtime.tasks.StreamTaskTest.NoOpStreamTask" target="org.apache.flink.streaming.api.operators.StreamOperator">
+      <point x="39.0" y="-14.5" />
+      <point x="1129.2364130434785" y="247.0" />
+      <point x="1260.0108695652175" y="247.0" />
+      <point x="-12.166666666666629" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.runtime.taskmanager.Task" target="org.apache.flink.runtime.state.CheckpointListener">
+      <point x="19.25" y="-14.5" />
+      <point x="982.427536231884" y="148.0" />
+      <point x="1009.0588768115946" y="148.0" />
+      <point x="-41.75" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.runtime.rpc.FencedMainThreadExecutable" target="org.apache.flink.runtime.rpc.MainThreadExecutable">
+      <point x="0.0" y="-14.5" />
+      <point x="46.75" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.runtime.rpc.RpcServer" target="org.apache.flink.runtime.rpc.RpcGateway">
+      <point x="-36.66666666666663" y="-14.5" />
+      <point x="1026.5833333333335" y="677.0" />
+      <point x="798.9855072463768" y="677.0" />
+      <point x="51.66666666666663" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.runtime.operators.windowing.WindowOperator" target="org.apache.flink.streaming.api.operators.AbstractUdfStreamOperator">
+      <point x="0.0" y="-14.5" />
+      <point x="1713.392210144928" y="445.0" />
+      <point x="1797.6530797101452" y="445.0" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.api.operators.OneInputStreamOperator" target="org.apache.flink.streaming.api.operators.StreamOperator">
+      <point x="-50.75" y="-14.5" />
+      <point x="1431.9864130434785" y="336.0" />
+      <point x="1477.2364130434785" y="336.0" />
+      <point x="1477.2364130434785" y="237.0" />
+      <point x="1308.677536231884" y="237.0" />
+      <point x="36.5" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.api.operators.OneInputStreamOperator" target="org.apache.flink.annotation.PublicEvolving">
+      <point x="50.75" y="-14.5" />
+      <point x="1533.4864130434785" y="336.0" />
+      <point x="1506.6485507246382" y="336.0" />
+      <point x="1506.6485507246382" y="69.0" />
+      <point x="1605.2608695652173" y="69.0" />
+      <point x="-11.416666666666742" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.runtime.rpc.akka.AkkaBasedEndpoint" target="org.apache.flink.runtime.rpc.RpcGateway">
+      <point x="0.0" y="-14.5" />
+      <point x="902.25" y="687.0" />
+      <point x="778.3188405797102" y="687.0" />
+      <point x="31.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.runtime.dispatcher.DispatcherGateway" target="org.apache.flink.runtime.webmonitor.RestfulGateway">
+      <point x="-41.75" y="-14.5" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.api.operators.AbstractUdfStreamOperator" target="org.apache.flink.streaming.api.operators.OutputTypeConfigurable">
+      <point x="0.0" y="-14.5" />
+      <point x="1797.6530797101452" y="336.0" />
+      <point x="1779.1530797101452" y="336.0" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.runtime.dispatcher.Dispatcher" target="org.apache.flink.runtime.rpc.FencedRpcEndpoint">
+      <point x="38.0" y="-14.5" />
+      <point x="365.75000000000006" y="850.0" />
+      <point x="501.00000000000006" y="850.0" />
+      <point x="-42.75" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.runtime.rpc.RpcServer" target="org.apache.flink.runtime.rpc.StartStoppable">
+      <point x="0.0" y="-14.5" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.runtime.rpc.akka.FencedAkkaInvocationHandler" target="org.apache.flink.runtime.rpc.FencedMainThreadExecutable">
+      <point x="77.99999999999989" y="-14.5" />
+      <point x="1060.75" y="850.0" />
+      <point x="1293.5" y="850.0" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.runtime.tasks.StreamIterationHead" target="org.apache.flink.streaming.runtime.tasks.OneInputStreamTask">
+      <point x="0.0" y="-14.5" />
+      <point x="254.0" y="455.0" />
+      <point x="318.7500000000001" y="455.0" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.runtime.dispatcher.DispatcherGateway" target="org.apache.flink.runtime.rpc.FencedRpcGateway">
+      <point x="41.75" y="-14.5" />
+      <point x="155.5" y="771.0" />
+      <point x="655.25" y="771.0" />
+      <point x="-56.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.runtime.streamstatus.StreamStatusMaintainer" target="org.apache.flink.streaming.runtime.streamstatus.StreamStatusProvider">
+      <point x="0.0" y="-14.5" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.api.operators.KeyedProcessOperator" target="org.apache.flink.streaming.api.operators.AbstractUdfStreamOperator">
+      <point x="0.0" y="-14.5" />
+      <point x="1976.5045289855072" y="405.0" />
+      <point x="1871.6530797101452" y="405.0" />
+      <point x="74.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.runtime.operators.windowing.WindowOperator" target="org.apache.flink.streaming.api.operators.Triggerable">
+      <point x="51.0" y="-14.5" />
+      <point x="1764.392210144928" y="455.0" />
+      <point x="1963.296195652174" y="455.0" />
+      <point x="-29.25" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.runtime.tasks.SourceStreamTask" target="org.apache.flink.streaming.runtime.tasks.StreamTask">
+      <point x="0.0" y="-14.5" />
+      <point x="508.7500000000001" y="336.0" />
+      <point x="439.92119565217376" y="336.0" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.runtime.tasks.StreamTaskTerminationTest.BlockingStreamTask" target="org.apache.flink.streaming.runtime.tasks.StreamTask">
+      <point x="-43.25" y="-14.5" />
+      <point x="1231.4864130434785" y="316.0" />
+      <point x="487.92119565217376" y="316.0" />
+      <point x="48.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.runtime.dispatcher.Dispatcher" target="org.apache.flink.runtime.jobmanager.SubmittedJobGraphStore.SubmittedJobGraphListener">
+      <point x="0.0" y="-14.5" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.runtime.tasks.StreamTask" target="org.apache.flink.streaming.api.operators.StreamOperator">
+      <point x="40.0" y="-14.5" />
+      <point x="479.92119565217376" y="227.0" />
+      <point x="1211.3442028985505" y="227.0" />
+      <point x="-60.83333333333337" y="14.5" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="0.861963666048067" x="1289.0" y="515.0" />
+  <SelectedNodes />
+  <Categories />
+  <SCOPE>Project Files</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

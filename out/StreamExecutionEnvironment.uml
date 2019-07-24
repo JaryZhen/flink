@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>org.apache.flink.streaming.api.environment.StreamExecutionEnvironment</OriginalElement>
+  <nodes>
+    <node x="0.0" y="237.0">org.apache.flink.api.java.ScalaShellRemoteStreamEnvironment</node>
+    <node x="3.5" y="548.0">org.apache.flink.runtime.minicluster.TestingMiniCluster</node>
+    <node x="22.0" y="311.0">org.apache.flink.runtime.minicluster.JobExecutor</node>
+    <node x="0.0" y="390.0">org.apache.flink.runtime.minicluster.JobExecutorService</node>
+    <node x="26.5" y="469.0">org.apache.flink.runtime.minicluster.MiniCluster</node>
+    <node x="30.5" y="158.0">org.apache.flink.streaming.api.environment.RemoteStreamEnvironment</node>
+    <node x="211.25" y="0.0">org.apache.flink.annotation.Public</node>
+    <node x="265.5" y="158.0">org.apache.flink.streaming.api.environment.LocalStreamEnvironment</node>
+    <node x="138.75" y="79.0">org.apache.flink.streaming.api.environment.StreamExecutionEnvironment</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="org.apache.flink.streaming.api.environment.LocalStreamEnvironment" target="org.apache.flink.annotation.Public">
+      <point x="50.25" y="-14.5" />
+      <point x="416.25" y="133.0" />
+      <point x="400.5" y="133.0" />
+      <point x="400.5" y="54.0" />
+      <point x="282.0833333333333" y="54.0" />
+      <point x="28.333333333333314" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.runtime.minicluster.MiniCluster" target="org.apache.flink.runtime.minicluster.JobExecutorService">
+      <point x="0.0" y="-14.5" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.runtime.minicluster.TestingMiniCluster" target="org.apache.flink.runtime.minicluster.MiniCluster">
+      <point x="0.0" y="-14.5" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.runtime.minicluster.JobExecutorService" target="org.apache.flink.runtime.minicluster.JobExecutor">
+      <point x="0.0" y="-14.5" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.api.environment.StreamExecutionEnvironment" target="org.apache.flink.annotation.Public">
+      <point x="0.0" y="-14.5" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.api.environment.RemoteStreamEnvironment" target="org.apache.flink.streaming.api.environment.StreamExecutionEnvironment">
+      <point x="53.75" y="-14.5" />
+      <point x="191.75" y="133.0" />
+      <point x="196.25" y="133.0" />
+      <point x="-57.5" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.api.java.ScalaShellRemoteStreamEnvironment" target="org.apache.flink.streaming.api.environment.RemoteStreamEnvironment">
+      <point x="0.0" y="-14.5" />
+      <point x="0.0" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.api.environment.RemoteStreamEnvironment" target="org.apache.flink.annotation.Public">
+      <point x="-53.75" y="-14.5" />
+      <point x="84.25" y="133.0" />
+      <point x="104.5" y="133.0" />
+      <point x="104.5" y="54.0" />
+      <point x="225.41666666666666" y="54.0" />
+      <point x="-28.333333333333343" y="14.5" />
+    </edge>
+    <edge source="org.apache.flink.streaming.api.environment.LocalStreamEnvironment" target="org.apache.flink.streaming.api.environment.StreamExecutionEnvironment">
+      <point x="-50.25" y="-14.5" />
+      <point x="315.75" y="133.0" />
+      <point x="311.25" y="133.0" />
+      <point x="57.5" y="14.5" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="1.0" x="115.0" y="286.0" />
+  <SelectedNodes />
+  <Categories />
+  <SCOPE>Project Files</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+
