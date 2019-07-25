@@ -110,6 +110,7 @@ public class SourceStreamTask<OUT, SRC extends SourceFunction<OUT>, OP extends S
 		// Against the usual contract of this method, this implementation is not step-wise but blocking instead for
 		// compatibility reasons with the current source interface (source functions run as a loop, not in steps).
 		final LegacySourceFunctionThread sourceThread = new LegacySourceFunctionThread();
+		sourceThread.setName("LegacySourceFunctionThread");
 		sourceThread.start();
 
 		// We run an alternative mailbox loop that does not involve default actions and synchronizes around actions.
