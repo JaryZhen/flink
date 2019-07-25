@@ -944,6 +944,7 @@ public class ExecutionGraph implements AccessExecutionGraph {
 
 		if (transitionState(JobStatus.CREATED, JobStatus.RUNNING)) {
 
+			// TODO: 24/07/2019 SchedulingUtils.schedule
 			final CompletableFuture<Void> newSchedulingFuture = SchedulingUtils.schedule(
 				scheduleMode,
 				getAllExecutionVertices(),

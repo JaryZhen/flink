@@ -324,6 +324,7 @@ public class JobManagerRunner implements LeaderContender, OnCompletionActions, A
 
 		final CompletableFuture<Acknowledge> startFuture;
 		try {
+			// TODO: 24/07/2019
 			startFuture = jobMasterService.start(new JobMasterId(leaderSessionId));
 		} catch (Exception e) {
 			return FutureUtils.completedExceptionally(new FlinkException("Failed to start the JobMaster.", e));

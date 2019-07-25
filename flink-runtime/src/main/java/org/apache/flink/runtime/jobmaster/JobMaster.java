@@ -302,6 +302,7 @@ public class JobMaster extends FencedRpcEndpoint<JobMasterId> implements JobMast
 	 */
 	public CompletableFuture<Acknowledge> start(final JobMasterId newJobMasterId) throws Exception {
 		// make sure we receive RPC and async calls
+		// TODO: 24/07/2019 rpcServer.start() 
 		start();
 
 		return callAsyncWithoutFencing(() -> startJobExecution(newJobMasterId), RpcUtils.INF_TIMEOUT);
@@ -852,6 +853,7 @@ public class JobMaster extends FencedRpcEndpoint<JobMasterId> implements JobMast
 		jobStatusListener = new JobManagerJobStatusListener();
 		schedulerNG.registerJobStatusListener(jobStatusListener);
 
+		// TODO: 24/07/2019  LegacyScheduler
 		schedulerNG.startScheduling();
 	}
 

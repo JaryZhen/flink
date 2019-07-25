@@ -540,6 +540,7 @@ public class EmbeddedLeaderService {
 		@Override
 		public void run() {
 			try {
+				// TODO: 24/07/2019 JobManagerRunner
 				contender.grantLeadership(leaderSessionId);
 			}
 			catch (Throwable t) {
