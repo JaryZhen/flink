@@ -946,21 +946,21 @@ under the License.
 				<repository>
 					<id>HDPReleases</id>
 					<name>HDP Releases</name>
-					<url>http://repo.hortonworks.com/content/repositories/releases/</url>
+					<url>https://repo.hortonworks.com/content/repositories/releases/</url>
 					<snapshots><enabled>false</enabled></snapshots>
 					<releases><enabled>true</enabled></releases>
 				</repository>
 				<repository>
 					<id>HortonworksJettyHadoop</id>
 					<name>HDP Jetty</name>
-					<url>http://repo.hortonworks.com/content/repositories/jetty-hadoop</url>
+					<url>https://repo.hortonworks.com/content/repositories/jetty-hadoop</url>
 					<snapshots><enabled>false</enabled></snapshots>
 					<releases><enabled>true</enabled></releases>
 				</repository>
 				<!-- MapR -->
 				<repository>
 					<id>mapr-releases</id>
-					<url>http://repository.mapr.com/maven/</url>
+					<url>https://repository.mapr.com/maven/</url>
 					<snapshots><enabled>false</enabled></snapshots>
 					<releases><enabled>true</enabled></releases>
 				</repository>
@@ -1520,7 +1520,7 @@ under the License.
 									<include>org.apache.flink:force-shading</include>
 								</includes>
 							</artifactSet>
-							<transformers>
+							<transformers combine.children="append">
 								<!-- The service transformer is needed to merge META-INF/services files -->
 								<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
 								<!-- The ApacheNoticeResourceTransformer collects and aggregates NOTICE files -->

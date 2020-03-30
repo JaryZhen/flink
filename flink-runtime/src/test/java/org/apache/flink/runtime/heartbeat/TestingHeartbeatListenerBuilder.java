@@ -20,6 +20,10 @@ package org.apache.flink.runtime.heartbeat;
 
 import org.apache.flink.runtime.clusterframework.types.ResourceID;
 
+<<<<<<< HEAD
+=======
+import java.util.concurrent.CompletableFuture;
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -27,7 +31,11 @@ import java.util.function.Function;
 class TestingHeartbeatListenerBuilder<I, O> {
 	private Consumer<ResourceID> notifyHeartbeatTimeoutConsumer = ignored -> {};
 	private BiConsumer<ResourceID, I> reportPayloadConsumer = (ignoredA, ignoredB) -> {};
+<<<<<<< HEAD
 	private Function<ResourceID, O> retrievePayloadFunction = ignored -> null;
+=======
+	private Function<ResourceID, CompletableFuture<O>> retrievePayloadFunction = ignored -> CompletableFuture.completedFuture(null);
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 
 	public TestingHeartbeatListenerBuilder<I, O> setNotifyHeartbeatTimeoutConsumer(Consumer<ResourceID> notifyHeartbeatTimeoutConsumer) {
 		this.notifyHeartbeatTimeoutConsumer = notifyHeartbeatTimeoutConsumer;
@@ -39,7 +47,11 @@ class TestingHeartbeatListenerBuilder<I, O> {
 		return this;
 	}
 
+<<<<<<< HEAD
 	public TestingHeartbeatListenerBuilder<I, O> setRetrievePayloadFunction(Function<ResourceID, O> retrievePayloadFunction) {
+=======
+	public TestingHeartbeatListenerBuilder<I, O> setRetrievePayloadFunction(Function<ResourceID, CompletableFuture<O>> retrievePayloadFunction) {
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 		this.retrievePayloadFunction = retrievePayloadFunction;
 		return this;
 	}

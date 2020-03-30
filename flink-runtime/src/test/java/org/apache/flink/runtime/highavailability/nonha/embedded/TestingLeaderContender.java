@@ -58,7 +58,11 @@ final class TestingLeaderContender implements LeaderContender {
 	}
 
 	@Override
+<<<<<<< HEAD
 	public String getDescription() {
+=======
+	public String getAddress() {
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 		return "foobar";
 	}
 

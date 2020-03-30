@@ -20,6 +20,10 @@ package org.apache.flink.runtime.heartbeat;
 
 import org.apache.flink.runtime.clusterframework.types.ResourceID;
 
+<<<<<<< HEAD
+=======
+import java.util.concurrent.CompletableFuture;
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -30,9 +34,15 @@ final class TestingHeartbeatListener<I, O> implements HeartbeatListener<I, O> {
 
 	private final BiConsumer<ResourceID, I> reportPayloadConsumer;
 
+<<<<<<< HEAD
 	private final Function<ResourceID, O> retrievePayloadFunction;
 
 	TestingHeartbeatListener(Consumer<ResourceID> notifyHeartbeatTimeoutConsumer, BiConsumer<ResourceID, I> reportPayloadConsumer, Function<ResourceID, O> retrievePayloadFunction) {
+=======
+	private final Function<ResourceID, CompletableFuture<O>> retrievePayloadFunction;
+
+	TestingHeartbeatListener(Consumer<ResourceID> notifyHeartbeatTimeoutConsumer, BiConsumer<ResourceID, I> reportPayloadConsumer, Function<ResourceID, CompletableFuture<O>> retrievePayloadFunction) {
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 		this.notifyHeartbeatTimeoutConsumer = notifyHeartbeatTimeoutConsumer;
 		this.reportPayloadConsumer = reportPayloadConsumer;
 		this.retrievePayloadFunction = retrievePayloadFunction;
@@ -49,7 +59,11 @@ final class TestingHeartbeatListener<I, O> implements HeartbeatListener<I, O> {
 	}
 
 	@Override
+<<<<<<< HEAD
 	public O retrievePayload(ResourceID resourceID) {
+=======
+	public CompletableFuture<O> retrievePayload(ResourceID resourceID) {
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 		return retrievePayloadFunction.apply(resourceID);
 	}
 }

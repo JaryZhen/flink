@@ -25,7 +25,10 @@ import org.apache.flink.util.TestLogger;
 import org.junit.Assert;
 import org.junit.Test;
 
+<<<<<<< HEAD
 import java.util.concurrent.CompletableFuture;
+=======
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -65,6 +68,7 @@ public class EmbeddedLeaderServiceTest extends TestLogger {
 			embeddedLeaderService.shutdown();
 		}
 	}
+<<<<<<< HEAD
 
 	/**
 	 * Tests that the {@link EmbeddedLeaderService} can handle a concurrent revoke
@@ -100,4 +104,6 @@ public class EmbeddedLeaderServiceTest extends TestLogger {
 			embeddedLeaderService.shutdown();
 		}
 	}
+=======
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 }

@@ -1193,8 +1193,8 @@ Certain RocksDB native metrics are available but disabled by default, you can fi
   <tbody>
     <tr>
       <th rowspan="1"><strong>Job (only available on TaskManager)</strong></th>
-      <td>&lt;source_id&gt;.&lt;source_subtask_index&gt;.&lt;operator_id&gt;.&lt;operator_subtask_index&gt;.latency</td>
-      <td>The latency distributions from a given source subtask to an operator subtask (in milliseconds).</td>
+      <td>[&lt;source_id&gt;.[&lt;source_subtask_index&gt;.]]&lt;operator_id&gt;.&lt;operator_subtask_index&gt;.latency</td>
+      <td>The latency distributions from a given source (subtask) to an operator subtask (in milliseconds), depending on the [latency granularity]({{ site.baseurl }}/ops/config.html#metrics-latency-granularity).</td>
       <td>Histogram</td>
     </tr>
     <tr>
@@ -1613,7 +1613,7 @@ logged by `SystemResourcesMetricsInitializer` during the startup.
 
 ## Latency tracking
 
-Flink allows to track the latency of records traveling through the system. This feature is disabled by default.
+Flink allows to track the latency of records travelling through the system. This feature is disabled by default.
 To enable the latency tracking you must set the `latencyTrackingInterval` to a positive number in either the
 [Flink configuration]({{ site.baseurl }}/ops/config.html#metrics-latency-interval) or `ExecutionConfig`.
 
@@ -1627,16 +1627,18 @@ bypassing them. In particular the markers are not accounting for the time record
 Only if operators are not able to accept new records, thus they are queuing up, the latency measured using
 the markers will reflect that.
 
-All intermediate operators keep a list of the last `n` latencies from each source to compute 
-a latency distribution.
-The sink operators keep a list from each source, and each parallel source instance to allow detecting 
-latency issues caused by individual machines.
+The `LatencyMarker`s are used to derive a distribution of the latency between the sources of the topology and each 
+downstream operator. These distributions are reported as histogram metrics. The granularity of these distributions can 
+be controlled in the [Flink configuration]({{ site.baseurl }}/ops/config.html#metrics-latency-interval. For the highest 
+granularity `subtask` Flink will derive the latency distribution between every source subtask and every downstream 
+subtask, which results in quadratic (in the terms of the parallelism) number of histograms. 
 
 Currently, Flink assumes that the clocks of all machines in the cluster are in sync. We recommend setting
 up an automated clock synchronisation service (like NTP) to avoid false latency results.
 
 <span class="label label-danger">Warning</span> Enabling latency metrics can significantly impact the performance
-of the cluster. It is highly recommended to only use them for debugging purposes.
+of the cluster (in particular for `subtask` granularity). It is highly recommended to only use them for debugging 
+purposes.
 
 ## REST API integration
 

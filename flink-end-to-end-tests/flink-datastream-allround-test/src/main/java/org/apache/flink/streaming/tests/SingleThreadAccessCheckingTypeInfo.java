@@ -20,7 +20,10 @@ package org.apache.flink.streaming.tests;
 
 import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
+<<<<<<< HEAD
 import org.apache.flink.api.common.typeutils.SingleThreadAccessCheckingTypeSerializer;
+=======
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 import org.apache.flink.api.common.typeutils.TypeSerializer;
 
 import java.util.Objects;

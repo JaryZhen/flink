@@ -60,14 +60,24 @@ import static org.apache.flink.configuration.CheckpointingOptions.CHECKPOINTS_DI
 import static org.apache.flink.configuration.CheckpointingOptions.INCREMENTAL_CHECKPOINTS;
 import static org.apache.flink.configuration.CheckpointingOptions.STATE_BACKEND;
 import static org.junit.Assert.assertEquals;
+<<<<<<< HEAD
+=======
+import static org.junit.Assert.assertTrue;
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 
 /**
  * Test for StatefulOperatorChainedTaskTest.
  */
 public class StatefulOperatorChainedTaskTest {
+<<<<<<< HEAD
 
 	private static final Set<OperatorID> RESTORED_OPERATORS = ConcurrentHashMap.newKeySet();
 	private TemporaryFolder temporaryFolder;
+=======
+	private static final Set<OperatorID> RESTORED_OPERATORS = ConcurrentHashMap.newKeySet();
+
+	private static TemporaryFolder temporaryFolder;
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 
 	@Before
 	public void setup() throws IOException {
@@ -144,10 +154,14 @@ public class StatefulOperatorChainedTaskTest {
 		File file = temporaryFolder.newFolder();
 		configuration.setString(CHECKPOINTS_DIRECTORY.key(), file.toURI().toString());
 		configuration.setString(INCREMENTAL_CHECKPOINTS.key(), "true");
+<<<<<<< HEAD
 		environment.setTaskManagerInfo(
 			new TestingTaskManagerRuntimeInfo(
 				configuration,
 				System.getProperty("java.io.tmpdir").split(",|" + File.pathSeparator)));
+=======
+		environment.setTaskManagerInfo(new TestingTaskManagerRuntimeInfo(configuration, System.getProperty("java.io.tmpdir").split(",|" + File.pathSeparator)));
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 		testHarness.invoke(environment);
 		testHarness.waitForTaskRunning();
 
@@ -176,7 +190,11 @@ public class StatefulOperatorChainedTaskTest {
 
 		testHarness.getTaskStateManager().setWaitForReportLatch(new OneShotLatch());
 
+<<<<<<< HEAD
 		while (!streamTask.triggerCheckpointAsync(checkpointMetaData, CheckpointOptions.forCheckpointWithDefaultLocation(), false).get()) {}
+=======
+		while (!streamTask.triggerCheckpoint(checkpointMetaData, CheckpointOptions.forCheckpointWithDefaultLocation())) {}
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 
 		testHarness.getTaskStateManager().getWaitForReportLatch().await();
 		long reportedCheckpointId = testHarness.getTaskStateManager().getReportedCheckpointId();
@@ -217,12 +235,20 @@ public class StatefulOperatorChainedTaskTest {
 	private static class CounterOperator extends RestoreWatchOperator<String, String> {
 		private static final long serialVersionUID = 2048954179291813243L;
 
+<<<<<<< HEAD
 		private static long snapshotOutData = 0L;
+=======
+		private static Long snapshotOutData = 0L;
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 		private ValueState<Long> counterState;
 		private long counter = 0;
 		private String prefix;
 
+<<<<<<< HEAD
 		CounterOperator(String prefix) {
+=======
+		CounterOperator(String prifix) {
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 			this.prefix = prefix;
 		}
 
@@ -240,12 +266,20 @@ public class StatefulOperatorChainedTaskTest {
 				.getKeyedStateStore()
 				.getState(new ValueStateDescriptor<>(prefix + "counter-state", LongSerializer.INSTANCE));
 
+<<<<<<< HEAD
 			// set key manually to make RocksDBListState get the serialized key.
+=======
+			// set key manually, so that RocksDBValueState can get the serialized composite key.
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 			setCurrentKey("10");
 
 			if (context.isRestored()) {
 				counter =  counterState.value();
+<<<<<<< HEAD
 				assertEquals(snapshotOutData, counter);
+=======
+				assertTrue(snapshotOutData.equals(counter));
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 				counterState.clear();
 			}
 		}
@@ -257,4 +291,7 @@ public class StatefulOperatorChainedTaskTest {
 		}
 	}
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7

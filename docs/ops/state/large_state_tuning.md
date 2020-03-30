@@ -161,21 +161,17 @@ RocksDBStateBackend.setOptions(new MyOptions());
 public class MyOptions implements OptionsFactory {
 
     @Override
-    public DBOptions createDBOptions() {
-        return new DBOptions()
-            .setIncreaseParallelism(4)
-            .setUseFsync(false)
-            .setDisableDataSync(true);
+    public DBOptions createDBOptions(DBOptions currentOptions) {
+    	return currentOptions.setIncreaseParallelism(4)
+    		   .setUseFsync(false);
     }
-
+    		
     @Override
-    public ColumnFamilyOptions createColumnOptions() {
-
-        return new ColumnFamilyOptions()
-            .setTableFormatConfig(
-                new BlockBasedTableConfig()
-                    .setBlockCacheSize(256 * 1024 * 1024)  // 256 MB
-                    .setBlockSize(128 * 1024));            // 128 KB
+    public ColumnFamilyOptions createColumnOptions(ColumnFamilyOptions currentOptions) {
+    	return currentOptions.setTableFormatConfig(
+    		new BlockBasedTableConfig()
+    			.setBlockCacheSize(256 * 1024 * 1024)  // 256 MB
+    			.setBlockSize(128 * 1024));            // 128 KB
     }
 }
 {% endhighlight %}
@@ -335,7 +331,5 @@ allocation and *requests the exact same slot* to restart in recovery. If this sl
 if a task manager is no longer available, a task that cannot return to its previous location *will not drive other recovering tasks out of their previous slots*. Our reasoning is
 that the previous slot can only disappear when a task manager is no longer available, and in this case *some* tasks have to request a new slot anyways. With our scheduling strategy
 we give the maximum number of tasks a chance to recover from their local state and avoid the cascading effect of tasks stealing their previous slots from one another.
-
-Allocation-preserving scheduling does not work with Flink's legacy mode.
 
 {% top %}

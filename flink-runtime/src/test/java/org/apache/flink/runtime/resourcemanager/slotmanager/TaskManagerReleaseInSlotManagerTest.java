@@ -36,7 +36,10 @@ import org.apache.flink.runtime.taskexecutor.TestingTaskExecutorGatewayBuilder;
 import org.apache.flink.runtime.testingUtils.TestingUtils;
 import org.apache.flink.util.TestLogger;
 import org.apache.flink.util.function.RunnableWithException;
+<<<<<<< HEAD
 
+=======
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 import org.junit.Before;
 import org.junit.Test;
 
@@ -55,7 +58,11 @@ public class TaskManagerReleaseInSlotManagerTest extends TestLogger {
 	private static final ResourceID resourceID = ResourceID.generate();
 	private static final ResourceManagerId resourceManagerId = ResourceManagerId.generate();
 	private static final SlotID slotId = new SlotID(resourceID, 0);
+<<<<<<< HEAD
 	private static final ResourceProfile resourceProfile = ResourceProfile.fromResources(1.0, 1);
+=======
+	private static final ResourceProfile resourceProfile = new ResourceProfile(1.0, 1);
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 	private static final SlotStatus slotStatus = new SlotStatus(slotId, resourceProfile);
 	private static final SlotReport slotReport = new SlotReport(slotStatus);
 
@@ -105,7 +112,11 @@ public class TaskManagerReleaseInSlotManagerTest extends TestLogger {
 	 */
 	@Test
 	public void testTaskManagerIsNotReleasedBeforeItCanBe() throws Exception {
+<<<<<<< HEAD
 		try (SlotManagerImpl slotManager = createAndStartSlotManagerWithTM()) {
+=======
+		try (SlotManager slotManager = createAndStartSlotManagerWithTM()) {
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 			checkTaskManagerTimeoutWithCustomCanBeReleasedResponse(slotManager, false);
 			verifyTmReleased(false);
 
@@ -119,7 +130,11 @@ public class TaskManagerReleaseInSlotManagerTest extends TestLogger {
 	 */
 	@Test
 	public void testTaskManagerIsNotReleasedInCaseOfConcurrentAllocation() throws Exception {
+<<<<<<< HEAD
 		try (SlotManagerImpl slotManager = createAndStartSlotManagerWithTM()) {
+=======
+		try (SlotManager slotManager = createAndStartSlotManagerWithTM()) {
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 			checkTaskManagerTimeoutWithCustomCanBeReleasedResponse(slotManager, true, () -> {
 				// Allocate and free slot between triggering TM.canBeReleased request and receiving response.
 				// There can be potentially newly unreleased partitions, therefore TM can not be released yet.
@@ -135,8 +150,13 @@ public class TaskManagerReleaseInSlotManagerTest extends TestLogger {
 		}
 	}
 
+<<<<<<< HEAD
 	private SlotManagerImpl createAndStartSlotManagerWithTM() {
 		SlotManagerImpl slotManager = SlotManagerBuilder
+=======
+	private SlotManager createAndStartSlotManagerWithTM() {
+		SlotManager slotManager = SlotManagerBuilder
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 			.newBuilder()
 			.setScheduledExecutor(mainThreadExecutor)
 			.setTaskManagerTimeout(Time.milliseconds(0L))
@@ -147,13 +167,21 @@ public class TaskManagerReleaseInSlotManagerTest extends TestLogger {
 	}
 
 	private void checkTaskManagerTimeoutWithCustomCanBeReleasedResponse(
+<<<<<<< HEAD
 			SlotManagerImpl slotManager,
+=======
+			SlotManager slotManager,
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 			boolean canBeReleased) throws Exception {
 		checkTaskManagerTimeoutWithCustomCanBeReleasedResponse(slotManager, canBeReleased, () -> {});
 	}
 
 	private void checkTaskManagerTimeoutWithCustomCanBeReleasedResponse(
+<<<<<<< HEAD
 			SlotManagerImpl slotManager,
+=======
+			SlotManager slotManager,
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 			boolean canBeReleased,
 			RunnableWithException doAfterCheckTriggerBeforeCanBeReleasedResponse) throws Exception {
 		canBeReleasedFuture.set(new CompletableFuture<>());

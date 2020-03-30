@@ -1,5 +1,9 @@
 flink-connector-cassandra
+<<<<<<< HEAD
 Copyright 2014-2020 The Apache Software Foundation
+=======
+Copyright 2014-2018 The Apache Software Foundation
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 
 This product includes software developed at
 The Apache Software Foundation (http://www.apache.org/).

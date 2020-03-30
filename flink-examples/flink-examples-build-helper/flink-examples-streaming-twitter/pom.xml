@@ -24,7 +24,11 @@ under the License.
 	<parent>
 		<artifactId>flink-examples-build-helper</artifactId>
 		<groupId>org.apache.flink</groupId>
+<<<<<<< HEAD
 		<version>1.11-SNAPSHOT</version>
+=======
+		<version>1.7-SNAPSHOT</version>
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 		<relativePath>..</relativePath>
 	</parent>
 

@@ -20,15 +20,25 @@ package org.apache.flink.yarn.entrypoint;
 
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.RestOptions;
+<<<<<<< HEAD
 import org.apache.flink.configuration.SecurityOptions;
 import org.apache.flink.runtime.clusterframework.BootstrapTools;
 import org.apache.flink.util.TestLogger;
 import org.apache.flink.yarn.YarnConfigKeys;
+=======
+import org.apache.flink.runtime.clusterframework.BootstrapTools;
+import org.apache.flink.util.TestLogger;
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 
 import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+<<<<<<< HEAD
+=======
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 
 import javax.annotation.Nonnull;
 
@@ -39,7 +49,10 @@ import java.util.Map;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+<<<<<<< HEAD
 import static org.hamcrest.Matchers.nullValue;
+=======
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 import static org.junit.Assert.assertThat;
 
 /**
@@ -47,6 +60,11 @@ import static org.junit.Assert.assertThat;
  */
 public class YarnEntrypointUtilsTest extends TestLogger {
 
+<<<<<<< HEAD
+=======
+	private static final Logger LOG = LoggerFactory.getLogger(YarnEntrypointUtilsTest.class);
+
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 	@ClassRule
 	public static final TemporaryFolder TEMPORARY_FOLDER = new TemporaryFolder();
 
@@ -61,11 +79,19 @@ public class YarnEntrypointUtilsTest extends TestLogger {
 		final Configuration configuration = loadConfiguration(initialConfiguration);
 
 		// having not specified the ports should set the rest bind port to 0
+<<<<<<< HEAD
 		assertThat(configuration.getString(RestOptions.BIND_PORT), is(equalTo("0")));
 	}
 
 	/**
 	 * Tests that the binding REST port is set to the REST port if set.
+=======
+		assertThat(configuration.getInteger(RestOptions.PORT), is(equalTo(0)));
+	}
+
+	/**
+	 * Tests that the REST port option is respected if it has been specified.
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 	 */
 	@Test
 	public void testRestPortSpecified() throws IOException {
@@ -76,6 +102,7 @@ public class YarnEntrypointUtilsTest extends TestLogger {
 		final Configuration configuration = loadConfiguration(initialConfiguration);
 
 		// if the bind port is not specified it should fall back to the rest port
+<<<<<<< HEAD
 		assertThat(configuration.getString(RestOptions.BIND_PORT), is(equalTo(String.valueOf(port))));
 	}
 
@@ -137,4 +164,19 @@ public class YarnEntrypointUtilsTest extends TestLogger {
 		BootstrapTools.writeConfiguration(initialConfiguration, new File(workingDirectory, "flink-conf.yaml"));
 		return YarnEntrypointUtils.loadConfiguration(workingDirectory.getAbsolutePath(), env);
 	}
+=======
+		assertThat(configuration.getInteger(RestOptions.PORT), is(equalTo(port)));
+	}
+
+	@Nonnull
+	private Configuration loadConfiguration(Configuration initialConfiguration) throws IOException {
+		final File workingDirectory = TEMPORARY_FOLDER.newFolder();
+		final Map<String, String> env = new HashMap<>(4);
+		env.put(ApplicationConstants.Environment.NM_HOST.key(), "foobar");
+
+		BootstrapTools.writeConfiguration(initialConfiguration, new File(workingDirectory, "flink-conf.yaml"));
+		return YarnEntrypointUtils.loadConfiguration(workingDirectory.getAbsolutePath(), env, LOG);
+	}
+
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 }

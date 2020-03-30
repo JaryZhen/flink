@@ -19,10 +19,13 @@
 package org.apache.flink.configuration;
 
 import org.apache.flink.annotation.PublicEvolving;
+<<<<<<< HEAD
 import org.apache.flink.annotation.docs.Documentation;
 import org.apache.flink.configuration.description.Description;
 
 import static org.apache.flink.configuration.description.TextElement.code;
+=======
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 
 /**
  * Options which control the cluster behaviour.
@@ -30,6 +33,7 @@ import static org.apache.flink.configuration.description.TextElement.code;
 @PublicEvolving
 public class ClusterOptions {
 
+<<<<<<< HEAD
 	@Documentation.Section(Documentation.Sections.EXPERT_FAULT_TOLERANCE)
 	public static final ConfigOption<Long> INITIAL_REGISTRATION_TIMEOUT = ConfigOptions
 		.key("cluster.registration.initial-timeout")
@@ -55,10 +59,13 @@ public class ClusterOptions {
 		.withDescription("The pause made after the registration attempt was refused in milliseconds.");
 
 	@Documentation.Section(Documentation.Sections.EXPERT_FAULT_TOLERANCE)
+=======
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 	public static final ConfigOption<Long> CLUSTER_SERVICES_SHUTDOWN_TIMEOUT = ConfigOptions
 		.key("cluster.services.shutdown-timeout")
 		.defaultValue(30000L)
 		.withDescription("The shutdown timeout for cluster services like executors in milliseconds.");
+<<<<<<< HEAD
 
 	@Documentation.Section(Documentation.Sections.EXPERT_SCHEDULING)
 	public static final ConfigOption<Boolean> EVENLY_SPREAD_OUT_SLOTS_STRATEGY = ConfigOptions
@@ -69,4 +76,6 @@ public class ClusterOptions {
 				.text("Enable the slot spread out allocation strategy. This strategy tries to spread out " +
 					"the slots evenly across all available %s.", code("TaskExecutors"))
 				.build());
+=======
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 }

@@ -17,6 +17,12 @@
 # limitations under the License.
 ################################################################################
 
+echo $M2_HOME
+echo $PATH
+echo $MAVEN_OPTS
+
+mvn -version
+
 CACHE_DIR="$HOME/flink_cache"
 CACHE_BUILD_DIR="$CACHE_DIR/$TRAVIS_BUILD_NUMBER"
 CACHE_FLINK_DIR="$CACHE_BUILD_DIR/flink"
@@ -46,51 +52,15 @@ function deleteOldCaches() {
 # delete leftover caches from previous builds
 find "$CACHE_DIR" -mindepth 1 -maxdepth 1 | grep -v "$TRAVIS_BUILD_NUMBER" | deleteOldCaches
 
-function getCurrentStage() {
-	STAGE_NUMBER=$(echo "$TRAVIS_JOB_NUMBER" | cut -d'.' -f 2)
-	case $STAGE_NUMBER in
-		(1)
-			echo "$STAGE_COMPILE"
-			;;
-		(2)
-			echo "$STAGE_CORE"
-			;;
-		(3)
-			echo "$STAGE_LIBRARIES"
-			;;
-		(4)
-			echo "$STAGE_CONNECTORS"
-			;;
-		(5)
-			echo "$STAGE_TESTS"
-			;;
-		(6)
-			echo "$STAGE_MISC"
-			;;
-		(7)
-			echo "$STAGE_CLEANUP"
-			;;
-		(*)
-			echo "Invalid stage detected ($STAGE_NUMBER)"
-			return 1
-			;;
-	esac
-
-	return 0
-}
-
-STAGE=$(getCurrentStage)
-if [ $? != 0 ]; then
-	echo "Could not determine current stage."
-	exit 1
-fi
+STAGE=$1
 echo "Current stage: \"$STAGE\""
 
 EXIT_CODE=0
 
 # Run actual compile&test steps
 if [ $STAGE == "$STAGE_COMPILE" ]; then
-	MVN="mvn clean install -nsu -Dflink.forkCount=2 -Dflink.forkCountTestPackage=2 -Dmaven.javadoc.skip=true -B -DskipTests $PROFILE"
+    # We use -Punsafe-mapr-repo since the https version fails on Travis for some reason.
+	MVN="mvn clean install -nsu -Punsafe-mapr-repo -Dflink.forkCount=2 -Dflink.forkCountTestPackage=2 -Dmaven.javadoc.skip=true -B -DskipTests $PROFILE"
 	$MVN
 	EXIT_CODE=$?
 
@@ -194,9 +164,12 @@ elif [ $STAGE != "$STAGE_CLEANUP" ]; then
 
 	TEST="$STAGE" "./tools/travis_mvn_watchdog.sh" 300
 	EXIT_CODE=$?
-else
+elif [ $STAGE == "$STAGE_CLEANUP" ]; then
 	echo "Cleaning up $CACHE_BUILD_DIR"
 	rm -rf "$CACHE_BUILD_DIR"
+else
+    echo "Invalid Stage specified: $STAGE"
+    exit 1
 fi
 
 # Exit code for Travis build success/failure

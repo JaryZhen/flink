@@ -24,7 +24,10 @@ if [ -z "$END_TO_END_DIR" ] ; then
     # to the script (e.g. permissions re-evaled after suid)
     exit 1  # fail
 fi
+<<<<<<< HEAD
 HADOOP_INTEGRATION=${1-with-hadoop}
+=======
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 
 export END_TO_END_DIR
 
@@ -44,6 +47,7 @@ echo "Flink distribution directory: $FLINK_DIR"
 
 # run_test "<description>" "$END_TO_END_DIR/test-scripts/<script_name>"
 
+<<<<<<< HEAD
 run_test "Wordcount on Docker test (custom fs plugin)" "$END_TO_END_DIR/test-scripts/test_docker_embedded_job.sh dummy-fs"
 run_test "Running Kerberized YARN on Docker test (default input)" "$END_TO_END_DIR/test-scripts/test_yarn_kerberos_docker.sh"
 run_test "Running Kerberized YARN on Docker test (custom fs plugin)" "$END_TO_END_DIR/test-scripts/test_yarn_kerberos_docker.sh dummy-fs"
@@ -54,6 +58,11 @@ if [[ "${HADOOP_INTEGRATION}" = "with-hadoop" ]]; then
     run_test "Run Mesos multiple submission test" "$END_TO_END_DIR/test-scripts/test_mesos_multiple_submissions.sh"
 fi
 run_test "Running Flink over NAT end-to-end test" "$END_TO_END_DIR/test-scripts/test_nat.sh" "skip_check_exceptions"
+=======
+run_test "Running Kerberized YARN on Docker test " "$END_TO_END_DIR/test-scripts/test_yarn_kerberos_docker.sh"
+
+run_test "Run kubernetes test" "$END_TO_END_DIR/test-scripts/test_kubernetes_embedded_job.sh"
+>>>>>>> 808cc1a23abb25bd03d24d75537a1e7c6987eef7
 
 printf "\n[PASS] All tests passed\n"
 exit 0
