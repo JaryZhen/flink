@@ -23,10 +23,10 @@ import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.configuration.MemorySize;
 import org.apache.flink.configuration.TaskManagerOptions;
 import org.apache.flink.runtime.blob.TransientBlobKey;
 import org.apache.flink.runtime.clusterframework.ApplicationStatus;
-import org.apache.flink.runtime.clusterframework.ContaineredTaskManagerParameters;
 import org.apache.flink.runtime.clusterframework.types.AllocationID;
 import org.apache.flink.runtime.clusterframework.types.ResourceID;
 import org.apache.flink.runtime.clusterframework.types.ResourceIDRetrievable;
@@ -38,6 +38,7 @@ import org.apache.flink.runtime.heartbeat.HeartbeatListener;
 import org.apache.flink.runtime.heartbeat.HeartbeatManager;
 import org.apache.flink.runtime.heartbeat.HeartbeatServices;
 import org.apache.flink.runtime.heartbeat.HeartbeatTarget;
+import org.apache.flink.runtime.heartbeat.NoOpHeartbeatManager;
 import org.apache.flink.runtime.highavailability.HighAvailabilityServices;
 import org.apache.flink.runtime.instance.HardwareDescription;
 import org.apache.flink.runtime.instance.InstanceID;
@@ -58,7 +59,6 @@ import org.apache.flink.runtime.resourcemanager.registration.JobManagerRegistrat
 import org.apache.flink.runtime.resourcemanager.registration.WorkerRegistration;
 import org.apache.flink.runtime.resourcemanager.slotmanager.ResourceActions;
 import org.apache.flink.runtime.resourcemanager.slotmanager.SlotManager;
-import org.apache.flink.runtime.resourcemanager.slotmanager.SlotManagerException;
 import org.apache.flink.runtime.rest.messages.taskmanager.TaskManagerInfo;
 import org.apache.flink.runtime.rpc.FatalErrorHandler;
 import org.apache.flink.runtime.rpc.FencedRpcEndpoint;
@@ -185,6 +185,9 @@ public abstract class ResourceManager<WorkerType extends ResourceIDRetrievable>
 		this.jmResourceIdRegistrations = new HashMap<>(4);
 		this.taskExecutors = new HashMap<>(8);
 		this.taskExecutorGatewayFutures = new HashMap<>(8);
+
+		this.jobManagerHeartbeatManager = NoOpHeartbeatManager.getInstance();
+		this.taskManagerHeartbeatManager = NoOpHeartbeatManager.getInstance();
 	}
 
 
@@ -442,7 +445,7 @@ public abstract class ResourceManager<WorkerType extends ResourceIDRetrievable>
 
 				try {
 					slotManager.registerSlotRequest(slotRequest);
-				} catch (SlotManagerException e) {
+				} catch (ResourceManagerException e) {
 					return FutureUtils.completedExceptionally(e);
 				}
 
@@ -696,7 +699,9 @@ public abstract class ResourceManager<WorkerType extends ResourceIDRetrievable>
 			log.debug("Replacing old registration of TaskExecutor {}.", taskExecutorResourceId);
 
 			// remove old task manager registration from slot manager
-			slotManager.unregisterTaskManager(oldRegistration.getInstanceID());
+			slotManager.unregisterTaskManager(
+				oldRegistration.getInstanceID(),
+				new ResourceManagerException(String.format("TaskExecutor %s re-connected to the ResourceManager.", taskExecutorResourceId)));
 		}
 
 		final WorkerType newWorker = workerStarted(taskExecutorResourceId);
@@ -804,7 +809,7 @@ public abstract class ResourceManager<WorkerType extends ResourceIDRetrievable>
 			log.info("Closing TaskExecutor connection {} because: {}", resourceID, cause.getMessage());
 
 			// TODO :: suggest failed task executor to stop itself
-			slotManager.unregisterTaskManager(workerRegistration.getInstanceID());
+			slotManager.unregisterTaskManager(workerRegistration.getInstanceID(), cause);
 
 			workerRegistration.getTaskExecutorGateway().disconnectResourceManager(cause);
 		} else {
@@ -860,7 +865,7 @@ public abstract class ResourceManager<WorkerType extends ResourceIDRetrievable>
 			}
 		} else {
 			// unregister in order to clean up potential left over state
-			slotManager.unregisterTaskManager(instanceId);
+			slotManager.unregisterTaskManager(instanceId, cause);
 		}
 	}
 
@@ -926,14 +931,18 @@ public abstract class ResourceManager<WorkerType extends ResourceIDRetrievable>
 
 			setFencingToken(newResourceManagerId);
 
-			startHeartbeatServices();
-
-			slotManager.start(getFencingToken(), getMainThreadExecutor(), new ResourceActionsImpl());
+			startServicesOnLeadership();
 
 			return prepareLeadershipAsync().thenApply(ignored -> true);
 		} else {
 			return CompletableFuture.completedFuture(false);
 		}
+	}
+
+	protected void startServicesOnLeadership() {
+		startHeartbeatServices();
+
+		slotManager.start(getFencingToken(), getMainThreadExecutor(), new ResourceActionsImpl());
 	}
 
 	/**
@@ -952,6 +961,7 @@ public abstract class ResourceManager<WorkerType extends ResourceIDRetrievable>
 				slotManager.suspend();
 
 				stopHeartbeatServices();
+
 			});
 	}
 
@@ -970,15 +980,8 @@ public abstract class ResourceManager<WorkerType extends ResourceIDRetrievable>
 	}
 
 	private void stopHeartbeatServices() {
-		if (taskManagerHeartbeatManager != null) {
 			taskManagerHeartbeatManager.stop();
-			taskManagerHeartbeatManager = null;
-		}
-
-		if (jobManagerHeartbeatManager != null) {
 			jobManagerHeartbeatManager.stop();
-			jobManagerHeartbeatManager = null;
-		}
 	}
 
 	/**
@@ -1203,22 +1206,12 @@ public abstract class ResourceManager<WorkerType extends ResourceIDRetrievable>
 	//  Helper methods
 	// ------------------------------------------------------------------------
 
-	@VisibleForTesting
-	public static Collection<ResourceProfile> updateTaskManagerConfigAndCreateWorkerSlotProfiles(
-			Configuration config, long totalMemoryMB, int numSlots) {
-
-		final long cutoffMB = ContaineredTaskManagerParameters.calculateCutoffMB(config, totalMemoryMB);
-		final long processMemoryBytes = (totalMemoryMB - cutoffMB) << 20; // megabytes to bytes
-		final long managedMemoryBytes = TaskManagerServices.getManagedMemoryFromProcessMemory(config, processMemoryBytes);
-
-		updateFlinkConfForManagedMemory(config, managedMemoryBytes);
+	public static Collection<ResourceProfile> createWorkerSlotProfiles(Configuration config) {
+		final int numSlots = config.getInteger(TaskManagerOptions.NUM_TASK_SLOTS);
+		final long managedMemoryBytes = MemorySize.parse(config.getString(TaskManagerOptions.MANAGED_MEMORY_SIZE)).getBytes();
 
 		final ResourceProfile resourceProfile = TaskManagerServices.computeSlotResourceProfile(numSlots, managedMemoryBytes);
 		return Collections.nCopies(numSlots, resourceProfile);
-	}
-
-	static void updateFlinkConfForManagedMemory(Configuration conf, long managedMemorySize) {
-		conf.setString(TaskManagerOptions.MANAGED_MEMORY_SIZE, managedMemorySize + "b");
 	}
 }
 

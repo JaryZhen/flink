@@ -20,6 +20,7 @@ package org.apache.flink.table.planner.codegen
 
 import org.apache.flink.streaming.api.functions.ProcessFunction
 import org.apache.flink.table.api.TableException
+import org.apache.flink.table.dataformat.DataFormatConverters.{DataFormatConverter, getConverterForDataType}
 import org.apache.flink.table.dataformat._
 import org.apache.flink.table.planner.calcite.{FlinkTypeFactory, RexAggLocalVariable, RexDistinctKeyVariable}
 import org.apache.flink.table.planner.codegen.CodeGenUtils.{requireTemporal, requireTimeInterval, _}
@@ -28,7 +29,9 @@ import org.apache.flink.table.planner.codegen.GeneratedExpression.{NEVER_NULL, N
 import org.apache.flink.table.planner.codegen.calls.ScalarOperatorGens._
 import org.apache.flink.table.planner.codegen.calls.{FunctionGenerator, ScalarFunctionCallGen, StringCallGen, TableFunctionCallGen}
 import org.apache.flink.table.planner.functions.sql.FlinkSqlOperatorTable._
+import org.apache.flink.table.planner.functions.sql.SqlThrowExceptionFunction
 import org.apache.flink.table.planner.functions.utils.{ScalarSqlFunction, TableSqlFunction}
+import org.apache.flink.table.runtime.types.LogicalTypeDataTypeConverter.fromLogicalTypeToDataType
 import org.apache.flink.table.runtime.types.PlannerTypeUtils.isInteroperable
 import org.apache.flink.table.runtime.typeutils.TypeCheckUtils
 import org.apache.flink.table.runtime.typeutils.TypeCheckUtils.{isNumeric, isTemporal, isTimeInterval}
@@ -717,20 +720,26 @@ class ExprCodeGenerator(ctx: CodeGeneratorContext, nullableInput: Boolean)
       case STREAMRECORD_TIMESTAMP =>
         generateRowtimeAccess(ctx, contextTerm)
 
-      case THROW_EXCEPTION =>
+      case _: SqlThrowExceptionFunction =>
+        val nullValue = generateNullLiteral(resultType, nullCheck = true)
         val code =
           s"""
              |${operands.map(_.code).mkString("\n")}
+             |${nullValue.code}
              |org.apache.flink.util.ExceptionUtils.rethrow(
-             |  new RuntimeException(${operands(1).resultTerm}.toString()));
+             |  new RuntimeException(${operands.head.resultTerm}.toString()));
              |""".stripMargin
-        GeneratedExpression(operands.head.resultTerm, operands.head.nullTerm, code, resultType)
+        GeneratedExpression(nullValue.resultTerm, nullValue.nullTerm, code, resultType)
 
       case ssf: ScalarSqlFunction =>
-        new ScalarFunctionCallGen(ssf.getScalarFunction).generate(ctx, operands, resultType)
+        new ScalarFunctionCallGen(
+          ssf.makeFunction(getOperandLiterals(operands), operands.map(_.resultType).toArray))
+            .generate(ctx, operands, resultType)
 
       case tsf: TableSqlFunction =>
-        new TableFunctionCallGen(tsf.getTableFunction).generate(ctx, operands, resultType)
+        new TableFunctionCallGen(
+          tsf.makeFunction(getOperandLiterals(operands), operands.map(_.resultType).toArray))
+            .generate(ctx, operands, resultType)
 
       // advanced scalar functions
       case sqlOperator: SqlOperator =>
@@ -753,5 +762,17 @@ class ExprCodeGenerator(ctx: CodeGeneratorContext, nullableInput: Boolean)
         val explainCall = s"$call(${operands.map(_.resultType).mkString(", ")})"
         throw new CodeGenException(s"Unsupported call: $explainCall")
     }
+  }
+
+  def getOperandLiterals(operands: Seq[GeneratedExpression]): Array[AnyRef] = {
+    operands.map { expr =>
+      expr.literalValue match {
+        case None => null
+        case Some(literal) =>
+          getConverterForDataType(fromLogicalTypeToDataType(expr.resultType))
+              .asInstanceOf[DataFormatConverter[AnyRef, AnyRef]
+              ].toExternal(literal.asInstanceOf[AnyRef])
+      }
+    }.toArray
   }
 }

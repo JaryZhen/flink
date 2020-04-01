@@ -1060,7 +1060,7 @@ Table result = left.join(right)
     </tr>
     <tr>
     	<td>
-        <strong>Inner Join with Table Function</strong><br>
+        <strong>Inner Join with Table Function (UDTF)</strong><br>
         <span class="label label-primary">Batch</span> <span class="label label-primary">Streaming</span>
       </td>
     	<td>
@@ -1081,7 +1081,7 @@ Table result = orders
     </tr>
     <tr>
     	<td>
-        <strong>Left Outer Join with Table Function</strong><br>
+        <strong>Left Outer Join with Table Function (UDTF)</strong><br>
         <span class="label label-primary">Batch</span> <span class="label label-primary">Streaming</span>
       </td>
       <td>
@@ -1208,7 +1208,7 @@ val result = left.join(right)
     </tr>
     <tr>
     	<td>
-        <strong>Inner Join with Table Function</strong><br>
+        <strong>Inner Join with Table Function (UDTF)</strong><br>
         <span class="label label-primary">Batch</span> <span class="label label-primary">Streaming</span>
       </td>
     	<td>
@@ -1227,7 +1227,7 @@ val result: Table = table
     </tr>
     <tr>
     	<td>
-        <strong>Left Outer Join with Table Function</strong><br>
+        <strong>Left Outer Join with Table Function (UDTF)</strong><br>
         <span class="label label-primary">Batch</span> <span class="label label-primary">Streaming</span></td>
     	<td>
         <p>Joins a table with the results of a table function. Each row of the left (outer) table is joined with all rows produced by the corresponding call of the table function. If a table function call returns an empty result, the corresponding outer row is preserved and the result padded with null values.</p>
@@ -1331,20 +1331,38 @@ full_outer_result = left.full_outer_join(right, "a = d").select("a, b, e")
     </tr>
     <tr>
     	<td>
-        <strong>Inner Join with Table Function</strong><br>
+        <strong>Inner Join with Table Function (UDTF)</strong><br>
         <span class="label label-primary">批处理</span> <span class="label label-primary">流处理</span>
       </td>
     	<td>
-        <p>Python API暂不支持。</p>
+        <p>将一张表与一个表函数的执行结果执行内连接操作。左表的每一行都会进行一次表函数调用，调用将会返回0个，1个或多个结果，再与这些结果执行连接操作。如果一行数据对应的表函数调用返回了一个空的结果集，则这行数据会被丢弃。
+        </p>
+{% highlight python %}
+# register Java User-Defined Table Function
+table_env.register_java_function("split", "com.my.udf.MySplitUDTF")
+
+# join
+orders = table_env.scan("Orders")
+result = orders.join_lateral("split(c).as(s, t, v)").select("a, b, s, t, v")
+{% endhighlight %}
       </td>
     </tr>
     <tr>
     	<td>
-        <strong>Left Outer Join with Table Function</strong><br>
+        <strong>Left Outer Join with Table Function (UDTF)</strong><br>
         <span class="label label-primary">批处理</span> <span class="label label-primary">流处理</span>
       </td>
       <td>
-        <p>Python API暂不支持。</p>
+        <p>将一张表与一个表函数的执行结果执行左连接操作。左表的每一行都会进行一次表函数调用，调用将会返回0个，1个或多个结果，再与这些结果执行连接操作。如果一行数据对应的表函数调用返回了一个空的结果集，这行数据依然会被保留，对应的右表数值用null(python为None)填充。</p>
+        <p><b>注意：</b>目前，表函数的左连接操作的连接条件(join predicate)只能为空或者为"true"常量。</p>
+{% highlight python %}
+# register Java User-Defined Table Function
+table_env.register_java_function("split", "com.my.udf.MySplitUDTF")
+
+# join
+orders = table_env.scan("Orders")
+result = orders.left_outer_join_lateral("split(c).as(s, t, v)").select("a, b, s, t, v")
+{% endhighlight %}
       </td>
     </tr>
     <tr>

@@ -18,6 +18,7 @@
 
 package org.apache.flink.yarn;
 
+import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.client.deployment.ClusterDeploymentException;
 import org.apache.flink.client.deployment.ClusterDescriptor;
@@ -34,6 +35,7 @@ import org.apache.flink.configuration.ResourceManagerOptions;
 import org.apache.flink.configuration.RestOptions;
 import org.apache.flink.configuration.SecurityOptions;
 import org.apache.flink.configuration.TaskManagerOptions;
+import org.apache.flink.core.plugin.PluginConfig;
 import org.apache.flink.core.plugin.PluginUtils;
 import org.apache.flink.runtime.clusterframework.BootstrapTools;
 import org.apache.flink.runtime.clusterframework.ContaineredTaskManagerParameters;
@@ -97,11 +99,11 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.apache.flink.configuration.ConfigConstants.ENV_FLINK_LIB_DIR;
-import static org.apache.flink.configuration.ConfigConstants.ENV_FLINK_PLUGINS_DIR;
 import static org.apache.flink.runtime.entrypoint.component.FileJobGraphRetriever.JOB_GRAPH_FILE_PATH;
 import static org.apache.flink.yarn.cli.FlinkYarnSessionCli.CONFIG_FILE_LOG4J_NAME;
 import static org.apache.flink.yarn.cli.FlinkYarnSessionCli.CONFIG_FILE_LOGBACK_NAME;
@@ -678,7 +680,10 @@ public abstract class AbstractYarnClusterDescriptor implements ClusterDescriptor
 		}
 
 		ApplicationSubmissionContext appContext = yarnApplication.getApplicationSubmissionContext();
+		// The files need to be shipped and added to classpath.
 		Set<File> systemShipFiles = new HashSet<>(shipFiles.size());
+		// The files only need to be shipped.
+		Set<File> shipOnlyFiles = new HashSet<>();
 		for (File file : shipFiles) {
 			systemShipFiles.add(file.getAbsoluteFile());
 		}
@@ -701,7 +706,9 @@ public abstract class AbstractYarnClusterDescriptor implements ClusterDescriptor
 			}
 		}
 
-		addEnvironmentFoldersToShipFiles(systemShipFiles);
+		addLibFoldersToShipFiles(systemShipFiles);
+		// Plugin files only need to be shipped and should not be added to classpath.
+		addPluginsFoldersToShipFiles(shipOnlyFiles);
 
 		// Set-up ApplicationSubmissionContext for the application
 
@@ -747,9 +754,19 @@ public abstract class AbstractYarnClusterDescriptor implements ClusterDescriptor
 		// ship list that enables reuse of resources for task manager containers
 		StringBuilder envShipFileList = new StringBuilder();
 
-		// upload and register ship files
+		// upload and register ship files, these files will be added to classpath.
 		List<String> systemClassPaths = uploadAndRegisterFiles(
 			systemShipFiles,
+			fs,
+			homeDir,
+			appId,
+			paths,
+			localResources,
+			envShipFileList);
+
+		// upload and register ship-only files
+		uploadAndRegisterFiles(
+			shipOnlyFiles,
 			fs,
 			homeDir,
 			appId,
@@ -810,14 +827,16 @@ public abstract class AbstractYarnClusterDescriptor implements ClusterDescriptor
 		tmpConfigurationFile.deleteOnExit();
 		BootstrapTools.writeConfiguration(configuration, tmpConfigurationFile);
 
+		String flinkConfigKey = "flink-conf.yaml";
 		Path remotePathConf = setupSingleLocalResource(
-			"flink-conf.yaml",
+			flinkConfigKey,
 			fs,
 			appId,
 			new Path(tmpConfigurationFile.getAbsolutePath()),
 			localResources,
 			homeDir,
 			"");
+		envShipFileList.append(flinkConfigKey).append("=").append(remotePathConf).append(",");
 
 		paths.add(remotePathJar);
 		classPathBuilder.append("flink.jar").append(File.pathSeparator);
@@ -998,7 +1017,7 @@ public abstract class AbstractYarnClusterDescriptor implements ClusterDescriptor
 		setApplicationTags(appContext);
 
 		// add a hook to clean up in case deployment fails
-		Thread deploymentFailureHook = new DeploymentFailureHook(yarnClient, yarnApplication, yarnFilesDir);
+		Thread deploymentFailureHook = new DeploymentFailureHook(yarnApplication, yarnFilesDir);
 		Runtime.getRuntime().addShutdownHook(deploymentFailureHook);
 		LOG.info("Submitting application master " + appId);
 		yarnClient.submitApplication(appContext);
@@ -1204,7 +1223,6 @@ public abstract class AbstractYarnClusterDescriptor implements ClusterDescriptor
 			// call (we don't know if the application has been deployed when the error occured).
 			LOG.debug("Error while killing YARN application", e);
 		}
-		yarnClient.stop();
 	}
 
 	private static class ClusterResourceDescription {
@@ -1489,16 +1507,22 @@ public abstract class AbstractYarnClusterDescriptor implements ClusterDescriptor
 		private final YarnClientApplication yarnApplication;
 		private final Path yarnFilesDir;
 
-		DeploymentFailureHook(YarnClient yarnClient, YarnClientApplication yarnApplication, Path yarnFilesDir) {
-			this.yarnClient = Preconditions.checkNotNull(yarnClient);
+		DeploymentFailureHook(YarnClientApplication yarnApplication, Path yarnFilesDir) {
 			this.yarnApplication = Preconditions.checkNotNull(yarnApplication);
 			this.yarnFilesDir = Preconditions.checkNotNull(yarnFilesDir);
+
+			// A new yarn client need to be created in shutdown hook in order to avoid
+			// the yarn client has been closed by AbstractYarnClusterDescriptor.
+			this.yarnClient = YarnClient.createYarnClient();
+			this.yarnClient.init(yarnConfiguration);
 		}
 
 		@Override
 		public void run() {
 			LOG.info("Cancelling deployment from Deployment Failure Hook");
+			yarnClient.start();
 			failSessionDuringDeployment(yarnClient, yarnApplication);
+			yarnClient.stop();
 			LOG.info("Deleting files in {}.", yarnFilesDir);
 			try {
 				FileSystem fs = FileSystem.get(yarnConfiguration);
@@ -1514,12 +1538,8 @@ public abstract class AbstractYarnClusterDescriptor implements ClusterDescriptor
 		}
 	}
 
-	protected void addEnvironmentFoldersToShipFiles(Collection<File> effectiveShipFiles) {
-		addLibFoldersToShipFiles(effectiveShipFiles);
-		addPluginsFoldersToShipFiles(effectiveShipFiles);
-	}
-
-	private void addLibFoldersToShipFiles(Collection<File> effectiveShipFiles) {
+	@VisibleForTesting
+	void addLibFoldersToShipFiles(Collection<File> effectiveShipFiles) {
 		// Add lib folder to the ship files if the environment variable is set.
 		// This is for convenience when running from the command-line.
 		// (for other files users explicitly set the ship files)
@@ -1538,17 +1558,10 @@ public abstract class AbstractYarnClusterDescriptor implements ClusterDescriptor
 		}
 	}
 
-	private void addPluginsFoldersToShipFiles(Collection<File> effectiveShipFiles) {
-		String pluginsDir = System.getenv().get(ENV_FLINK_PLUGINS_DIR);
-		if (pluginsDir != null) {
-			File directoryFile = new File(pluginsDir);
-			if (directoryFile.isDirectory()) {
-				effectiveShipFiles.add(directoryFile);
-			} else {
-				LOG.warn("The environment variable '" + ENV_FLINK_PLUGINS_DIR +
-					"' is set to '" + pluginsDir + "' but the directory doesn't exist.");
-			}
-		}
+	@VisibleForTesting
+	void addPluginsFoldersToShipFiles(Collection<File> effectiveShipFiles) {
+		final Optional<File> pluginsDir = PluginConfig.getPluginsDir();
+		pluginsDir.ifPresent(effectiveShipFiles::add);
 	}
 
 	protected ContainerLaunchContext setupApplicationMasterContainer(

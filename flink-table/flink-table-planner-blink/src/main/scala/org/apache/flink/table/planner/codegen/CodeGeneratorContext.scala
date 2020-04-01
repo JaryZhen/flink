@@ -68,11 +68,6 @@ class CodeGeneratorContext(val tableConfig: TableConfig) {
   private val reusableCloseStatements: mutable.LinkedHashSet[String] =
     mutable.LinkedHashSet[String]()
 
-  // set of endInput statements for StreamOperator that will be added only once
-  // we use a LinkedHashSet to keep the insertion order
-  private val reusableEndInputStatements: mutable.LinkedHashSet[String] =
-    mutable.LinkedHashSet[String]()
-
   // set of statements for cleanup dataview that will be added only once
   // we use a LinkedHashSet to keep the insertion order
   private val reusableCleanupStatements = mutable.LinkedHashSet[String]()
@@ -249,14 +244,6 @@ class CodeGeneratorContext(val tableConfig: TableConfig) {
   }
 
   /**
-    * @return code block of statements that need to be placed in the endInput() method
-    *         (StreamOperator)
-    */
-  def reuseEndInputCode(): String = {
-    reusableEndInputStatements.mkString("\n")
-  }
-
-  /**
     * @return code block of statements that need to be placed in the cleanup() method of
     *         [AggregationsFunction]
     */
@@ -343,11 +330,6 @@ class CodeGeneratorContext(val tableConfig: TableConfig) {
     * Adds a reusable close statement
     */
   def addReusableCloseStatement(s: String): Unit = reusableCloseStatements.add(s)
-
-  /**
-    * Adds a reusable endInput statement
-    */
-  def addReusableEndInputStatement(s: String): Unit = reusableEndInputStatements.add(s)
 
   /**
     * Adds a reusable cleanup statement
@@ -537,17 +519,6 @@ class CodeGeneratorContext(val tableConfig: TableConfig) {
   }
 
   /**
-    * Adds a reusable Time ZoneId to the member area of the generated class.
-    */
-  def addReusableTimeZoneID(): String = {
-    val zoneID = tableConfig.getLocalTimeZone.getId
-    val stmt =
-      s"""private static final java.time.ZoneId $DEFAULT_TIMEZONE_TERM =
-         |                 java.time.ZoneId.of("$zoneID");""".stripMargin
-    DEFAULT_TIMEZONE_ID_TERM
-  }
-
-  /**
     * Adds a reusable [[java.util.Random]] to the member area of the generated class.
     *
     * The seed parameter must be a literal/constant expression.
@@ -621,7 +592,7 @@ class CodeGeneratorContext(val tableConfig: TableConfig) {
     val byteArray = InstantiationUtil.serializeObject(obj)
     val objCopy: AnyRef = InstantiationUtil.deserializeObject(
       byteArray,
-      obj.getClass.getClassLoader)
+      Thread.currentThread().getContextClassLoader)
     references += objCopy
 
     reusableMemberStatements.add(s"private transient $fieldTypeTerm $fieldTerm;")

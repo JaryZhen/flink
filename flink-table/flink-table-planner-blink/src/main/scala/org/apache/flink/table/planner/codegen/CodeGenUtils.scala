@@ -47,8 +47,6 @@ object CodeGenUtils {
 
   val DEFAULT_TIMEZONE_TERM = "timeZone"
 
-  val DEFAULT_TIMEZONE_ID_TERM = "zoneId"
-
   val DEFAULT_INPUT1_TERM = "in1"
 
   val DEFAULT_INPUT2_TERM = "in2"
@@ -201,10 +199,12 @@ object CodeGenUtils {
     * If it's internally compatible, don't need to DataStructure converter.
     * clazz != classOf[Row] => Row can only infer GenericType[Row].
     */
-  def isInternalClass(clazz: Class[_], t: DataType): Boolean =
+  def isInternalClass(t: DataType): Boolean = {
+    val clazz = t.getConversionClass
     clazz != classOf[Object] && clazz != classOf[Row] &&
-      (classOf[BaseRow].isAssignableFrom(clazz) ||
-          clazz == getInternalClassForType(fromDataTypeToLogicalType(t)))
+        (classOf[BaseRow].isAssignableFrom(clazz) ||
+            clazz == getInternalClassForType(fromDataTypeToLogicalType(t)))
+  }
 
   def hashCodeForType(
       ctx: CodeGeneratorContext, t: LogicalType, term: String): String = t.getTypeRoot match {
@@ -653,8 +653,9 @@ object CodeGenUtils {
       case ROW =>
         val ser = ctx.addReusableTypeSerializer(t)
         s"$writerTerm.writeRow($indexTerm, $fieldValTerm, $ser)"
-
-      case ANY => s"$writerTerm.writeGeneric($indexTerm, $fieldValTerm)"
+      case ANY =>
+        val ser = ctx.addReusableTypeSerializer(t)
+        s"$writerTerm.writeGeneric($indexTerm, $fieldValTerm, $ser)"
     }
 
   private def isConverterIdentity(t: DataType): Boolean = {
@@ -680,9 +681,8 @@ object CodeGenUtils {
   def genToInternalIfNeeded(
       ctx: CodeGeneratorContext,
       t: DataType,
-      clazz: Class[_],
       term: String): String = {
-    if (isInternalClass(clazz, t)) {
+    if (isInternalClass(t)) {
       s"(${boxedTypeTermForType(fromDataTypeToLogicalType(t))}) $term"
     } else {
       genToInternal(ctx, t, term)
@@ -705,9 +705,8 @@ object CodeGenUtils {
   def genToExternalIfNeeded(
       ctx: CodeGeneratorContext,
       t: DataType,
-      clazz: Class[_],
       term: String): String = {
-    if (isInternalClass(clazz, t)) {
+    if (isInternalClass(t)) {
       s"(${boxedTypeTermForType(fromDataTypeToLogicalType(t))}) $term"
     } else {
       genToExternal(ctx, t, term)

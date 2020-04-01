@@ -132,6 +132,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
@@ -154,8 +156,6 @@ public class TaskExecutor extends RpcEndpoint implements TaskExecutorGateway {
 
 	/** The task manager configuration. */
 	private final TaskManagerConfiguration taskManagerConfiguration;
-
-	private final HeartbeatServices heartbeatServices;
 
 	/** The fatal error handler to use in case of a fatal error. */
 	private final FatalErrorHandler fatalErrorHandler;
@@ -182,6 +182,8 @@ public class TaskExecutor extends RpcEndpoint implements TaskExecutorGateway {
 	/** The kvState registration service in the task manager. */
 	private final KvStateService kvStateService;
 
+	private final TaskCompletionTracker taskCompletionTracker;
+
 	// --------- job manager connections -----------
 
 	private final Map<ResourceID, JobManagerConnection> jobManagerConnections;
@@ -203,10 +205,10 @@ public class TaskExecutor extends RpcEndpoint implements TaskExecutorGateway {
 	private FileCache fileCache;
 
 	/** The heartbeat manager for job manager in the task manager. */
-	private HeartbeatManager<AllocatedSlotReport, AccumulatorReport> jobManagerHeartbeatManager;
+	private final HeartbeatManager<AllocatedSlotReport, AccumulatorReport> jobManagerHeartbeatManager;
 
 	/** The heartbeat manager for resource manager in the task manager. */
-	private HeartbeatManager<Void, SlotReport> resourceManagerHeartbeatManager;
+	private final HeartbeatManager<Void, SlotReport> resourceManagerHeartbeatManager;
 
 	private final PartitionTable<JobID> partitionTable;
 
@@ -245,7 +247,6 @@ public class TaskExecutor extends RpcEndpoint implements TaskExecutorGateway {
 		checkArgument(taskManagerConfiguration.getNumberSlots() > 0, "The number of slots has to be larger than 0.");
 
 		this.taskManagerConfiguration = checkNotNull(taskManagerConfiguration);
-		this.heartbeatServices = checkNotNull(heartbeatServices);
 		this.taskExecutorServices = checkNotNull(taskExecutorServices);
 		this.haServices = checkNotNull(haServices);
 		this.fatalErrorHandler = checkNotNull(fatalErrorHandler);
@@ -273,6 +274,27 @@ public class TaskExecutor extends RpcEndpoint implements TaskExecutorGateway {
 		this.currentRegistrationTimeoutId = null;
 
 		this.stackTraceSampleService = new StackTraceSampleService(rpcService.getScheduledExecutor());
+		this.taskCompletionTracker = new TaskCompletionTracker();
+
+		final ResourceID resourceId = taskExecutorServices.getTaskManagerLocation().getResourceID();
+		this.jobManagerHeartbeatManager = createJobManagerHeartbeatManager(heartbeatServices, resourceId);
+		this.resourceManagerHeartbeatManager = createResourceManagerHeartbeatManager(heartbeatServices, resourceId);
+	}
+
+	private HeartbeatManager<Void, SlotReport> createResourceManagerHeartbeatManager(HeartbeatServices heartbeatServices, ResourceID resourceId) {
+		return heartbeatServices.createHeartbeatManager(
+			resourceId,
+			new ResourceManagerHeartbeatListener(),
+			getMainThreadExecutor(),
+			log);
+	}
+
+	private HeartbeatManager<AllocatedSlotReport, AccumulatorReport> createJobManagerHeartbeatManager(HeartbeatServices heartbeatServices, ResourceID resourceId) {
+		return heartbeatServices.createHeartbeatManager(
+			resourceId,
+			new JobManagerHeartbeatListener(),
+			getMainThreadExecutor(),
+			log);
 	}
 
 	@Override
@@ -299,8 +321,6 @@ public class TaskExecutor extends RpcEndpoint implements TaskExecutorGateway {
 
 	private void startTaskExecutorServices() throws Exception {
 		try {
-			startHeartbeatServices();
-
 			// start by connecting to the ResourceManager
 			resourceManagerLeaderRetriever.start(new ResourceManagerLeaderListener());
 
@@ -333,31 +353,45 @@ public class TaskExecutor extends RpcEndpoint implements TaskExecutorGateway {
 	public CompletableFuture<Void> onStop() {
 		log.info("Stopping TaskExecutor {}.", getAddress());
 
-		Throwable throwable = null;
+		Throwable jobManagerDisconnectThrowable = null;
 
-		if (resourceManagerConnection != null) {
-			resourceManagerConnection.close();
-		}
+		FlinkException cause = new FlinkException("The TaskExecutor is shutting down.");
+
+		closeResourceManagerConnection(cause);
 
 		for (JobManagerConnection jobManagerConnection : jobManagerConnections.values()) {
 			try {
-				disassociateFromJobManager(jobManagerConnection, new FlinkException("The TaskExecutor is shutting down."));
+				disassociateFromJobManager(jobManagerConnection, cause);
 			} catch (Throwable t) {
-				throwable = ExceptionUtils.firstOrSuppressed(t, throwable);
+				jobManagerDisconnectThrowable = ExceptionUtils.firstOrSuppressed(t, jobManagerDisconnectThrowable);
 			}
 		}
 
-		try {
-			stopTaskExecutorServices();
-		} catch (Exception e) {
-			throwable = ExceptionUtils.firstOrSuppressed(e, throwable);
+		final Throwable throwableBeforeTasksCompletion = jobManagerDisconnectThrowable;
+
+		return FutureUtils
+			.runAfterwards(
+				taskCompletionTracker.failIncompleteTasksAndGetTerminationFuture(),
+				this::stopTaskExecutorServices)
+  		    .handle((ignored, throwable) -> {
+  		    	handleOnStopException(throwableBeforeTasksCompletion, throwable);
+  		    	return null;
+			});
+	}
+
+	private void handleOnStopException(Throwable throwableBeforeTasksCompletion, Throwable throwableAfterTasksCompletion) {
+		final Throwable throwable;
+
+		if (throwableBeforeTasksCompletion != null) {
+			throwable = ExceptionUtils.firstOrSuppressed(throwableBeforeTasksCompletion, throwableAfterTasksCompletion);
+		} else {
+			throwable = throwableAfterTasksCompletion;
 		}
 
 		if (throwable != null) {
-			return FutureUtils.completedExceptionally(new FlinkException("Error while shutting the TaskExecutor down.", throwable));
+			throw new CompletionException(new FlinkException("Error while shutting the TaskExecutor down.", throwable));
 		} else {
 			log.info("Stopped TaskExecutor {}.", getAddress());
-			return CompletableFuture.completedFuture(null);
 		}
 	}
 
@@ -393,36 +427,7 @@ public class TaskExecutor extends RpcEndpoint implements TaskExecutorGateway {
 		// it will call close() recursively from the parent to children
 		taskManagerMetricGroup.close();
 
-		stopHeartbeatServices();
-
 		ExceptionUtils.tryRethrowException(exception);
-	}
-
-	private void startHeartbeatServices() {
-		final ResourceID resourceId = taskExecutorServices.getTaskManagerLocation().getResourceID();
-		jobManagerHeartbeatManager = heartbeatServices.createHeartbeatManager(
-			resourceId,
-			new JobManagerHeartbeatListener(),
-			getMainThreadExecutor(),
-			log);
-
-		resourceManagerHeartbeatManager = heartbeatServices.createHeartbeatManager(
-			resourceId,
-			new ResourceManagerHeartbeatListener(),
-			getMainThreadExecutor(),
-			log);
-	}
-
-	private void stopHeartbeatServices() {
-		if (jobManagerHeartbeatManager != null) {
-			jobManagerHeartbeatManager.stop();
-			jobManagerHeartbeatManager = null;
-		}
-
-		if (resourceManagerHeartbeatManager != null) {
-			resourceManagerHeartbeatManager.stop();
-			resourceManagerHeartbeatManager = null;
-		}
 	}
 
 	// ======================================================================
@@ -596,8 +601,12 @@ public class TaskExecutor extends RpcEndpoint implements TaskExecutorGateway {
 
 			if (taskAdded) {
 				task.startTaskThread();
+				taskCompletionTracker.trackTaskCompletion(task);
 
-				setupResultPartitionBookkeeping(tdd, task.getTerminationFuture());
+				setupResultPartitionBookkeeping(
+					tdd.getJobId(),
+					tdd.getProducedPartitions(),
+					task.getTerminationFuture());
 				return CompletableFuture.completedFuture(Acknowledge.get());
 			} else {
 				final String message = "TaskManager already contains a task for id " +
@@ -611,31 +620,27 @@ public class TaskExecutor extends RpcEndpoint implements TaskExecutorGateway {
 		}
 	}
 
-	private void setupResultPartitionBookkeeping(TaskDeploymentDescriptor tdd, CompletableFuture<ExecutionState> terminationFuture) {
-		final List<ResultPartitionID> partitionsRequiringRelease = tdd.getProducedPartitions().stream()
-			// partitions that are released on consumption don't require any explicit release call
-			.filter(d -> !d.isReleasedOnConsumption())
-			.map(ResultPartitionDeploymentDescriptor::getShuffleDescriptor)
-			// partitions without local resources don't store anything on the TaskExecutor
-			.filter(d -> d.storesLocalResourcesOn().isPresent())
-			.map(ShuffleDescriptor::getResultPartitionID)
-			.collect(Collectors.toList());
+	private void setupResultPartitionBookkeeping(
+			JobID jobId,
+			Collection<ResultPartitionDeploymentDescriptor> producedResultPartitions,
+			CompletableFuture<ExecutionState> terminationFuture) {
+		final List<ResultPartitionID> partitionsRequiringRelease = filterPartitionsRequiringRelease(producedResultPartitions);
 
-		partitionTable.startTrackingPartitions(tdd.getJobId(), partitionsRequiringRelease);
+		partitionTable.startTrackingPartitions(jobId, partitionsRequiringRelease);
 
 		final CompletableFuture<ExecutionState> taskTerminationWithResourceCleanupFuture =
 			terminationFuture.thenApplyAsync(
 				executionState -> {
 					if (executionState != ExecutionState.FINISHED) {
-						partitionTable.stopTrackingPartitions(tdd.getJobId(), partitionsRequiringRelease);
+						partitionTable.stopTrackingPartitions(jobId, partitionsRequiringRelease);
 					}
 					return executionState;
 				},
 				getMainThreadExecutor());
 
 		taskResultPartitionCleanupFuturesPerJob.compute(
-			tdd.getJobId(),
-			(jobID, completableFutures) -> {
+			jobId,
+			(ignored, completableFutures) -> {
 				if (completableFutures == null) {
 					completableFutures = new ArrayList<>(4);
 				}
@@ -643,6 +648,17 @@ public class TaskExecutor extends RpcEndpoint implements TaskExecutorGateway {
 				completableFutures.add(taskTerminationWithResourceCleanupFuture);
 				return completableFutures;
 			});
+	}
+
+	private List<ResultPartitionID> filterPartitionsRequiringRelease(Collection<ResultPartitionDeploymentDescriptor> producedResultPartitions) {
+		return producedResultPartitions.stream()
+			// only blocking partitions require explicit release call
+			.filter(d -> d.getPartitionType().isBlocking())
+			.map(ResultPartitionDeploymentDescriptor::getShuffleDescriptor)
+			// partitions without local resources don't store anything on the TaskExecutor
+			.filter(d -> d.storesLocalResourcesOn().isPresent())
+			.map(ShuffleDescriptor::getResultPartitionID)
+			.collect(Collectors.toList());
 	}
 
 	@Override
@@ -927,7 +943,9 @@ public class TaskExecutor extends RpcEndpoint implements TaskExecutorGateway {
 
 	@Override
 	public void disconnectResourceManager(Exception cause) {
-		reconnectToResourceManager(cause);
+		if (isRunning()) {
+			reconnectToResourceManager(cause);
+		}
 	}
 
 	// ======================================================================
@@ -955,6 +973,7 @@ public class TaskExecutor extends RpcEndpoint implements TaskExecutorGateway {
 
 	private void reconnectToResourceManager(Exception cause) {
 		closeResourceManagerConnection(cause);
+		startRegistrationTimeout();
 		tryConnectToResourceManager();
 	}
 
@@ -1067,8 +1086,6 @@ public class TaskExecutor extends RpcEndpoint implements TaskExecutorGateway {
 			resourceManagerConnection.close();
 			resourceManagerConnection = null;
 		}
-
-		startRegistrationTimeout();
 	}
 
 	private void startRegistrationTimeout() {
@@ -1824,6 +1841,32 @@ public class TaskExecutor extends RpcEndpoint implements TaskExecutorGateway {
 		public SlotReport retrievePayload(ResourceID resourceID) {
 			validateRunsInMainThread();
 			return taskSlotTable.createSlotReport(getResourceID());
+		}
+	}
+
+	private static class TaskCompletionTracker {
+		private final Map<ExecutionAttemptID, Task> incompleteTasks;
+
+		private TaskCompletionTracker() {
+			incompleteTasks = new ConcurrentHashMap<>(8);
+		}
+
+		void trackTaskCompletion(Task task) {
+			incompleteTasks.put(task.getExecutionId(), task);
+			task.getTerminationFuture().thenRun(() -> incompleteTasks.remove(task.getExecutionId()));
+		}
+
+		CompletableFuture<Void> failIncompleteTasksAndGetTerminationFuture() {
+			FlinkException cause = new FlinkException("The TaskExecutor is shutting down.");
+			return FutureUtils.waitForAll(
+				incompleteTasks
+					.values()
+					.stream()
+					.map(task -> {
+						task.failExternally(cause);
+						return task.getTerminationFuture();
+					})
+					.collect(Collectors.toList()));
 		}
 	}
 }

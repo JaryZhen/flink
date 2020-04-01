@@ -139,7 +139,7 @@ public class RemoteStreamEnvironment extends StreamExecutionEnvironment {
 	 *            The protocol must be supported by the {@link java.net.URLClassLoader}.
 	 */
 	public RemoteStreamEnvironment(String host, int port, Configuration clientConfiguration, String[] jarFiles, URL[] globalClasspaths) {
-		this(host, port, clientConfiguration, jarFiles, null, null);
+		this(host, port, clientConfiguration, jarFiles, globalClasspaths, null);
 	}
 
 	/**
@@ -255,7 +255,7 @@ public class RemoteStreamEnvironment extends StreamExecutionEnvironment {
 			LOG.info("Running remotely at {}:{}", host, port);
 		}
 
-		ClassLoader userCodeClassLoader = JobWithJars.buildUserCodeClassLoader(jarFiles, globalClasspaths, envClassLoader);
+		ClassLoader userCodeClassLoader = JobWithJars.buildUserCodeClassLoader(jarFiles, globalClasspaths, envClassLoader, clientConfiguration);
 
 		Configuration configuration = new Configuration();
 		configuration.addAll(clientConfiguration);

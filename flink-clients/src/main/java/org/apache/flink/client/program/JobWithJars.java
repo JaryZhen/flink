@@ -19,6 +19,8 @@
 package org.apache.flink.client.program;
 
 import org.apache.flink.api.common.Plan;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.configuration.CoreOptions;
 import org.apache.flink.runtime.execution.librarycache.FlinkUserCodeClassLoaders;
 
 import java.io.File;
@@ -105,7 +107,7 @@ public class JobWithJars {
 	 */
 	public ClassLoader getUserCodeClassLoader() {
 		if (this.userCodeClassLoader == null) {
-			this.userCodeClassLoader = buildUserCodeClassLoader(jarFiles, classpaths, getClass().getClassLoader());
+			this.userCodeClassLoader = buildUserCodeClassLoader(jarFiles, classpaths, getClass().getClassLoader(), new Configuration());
 		}
 		return this.userCodeClassLoader;
 	}
@@ -131,7 +133,23 @@ public class JobWithJars {
 		}
 	}
 
+	/**
+	 * @deprecated Use {@link #buildUserCodeClassLoader(List, List, ClassLoader, Configuration)}
+	 */
+	@Deprecated
 	public static ClassLoader buildUserCodeClassLoader(List<URL> jars, List<URL> classpaths, ClassLoader parent) {
+		return FlinkUserCodeClassLoaders.parentFirst(extractUrls(jars, classpaths), parent);
+	}
+
+	public static ClassLoader buildUserCodeClassLoader(List<URL> jars, List<URL> classpaths, ClassLoader parent, Configuration configuration) {
+		URL[] urls = extractUrls(jars, classpaths);
+		FlinkUserCodeClassLoaders.ResolveOrder resolveOrder = FlinkUserCodeClassLoaders.ResolveOrder
+			.fromString(configuration.getString(CoreOptions.CLASSLOADER_RESOLVE_ORDER));
+		String[] parentFirstPattern = CoreOptions.getParentFirstLoaderPatterns(configuration);
+		return FlinkUserCodeClassLoaders.create(resolveOrder, urls, parent, parentFirstPattern);
+	}
+
+	private static URL[] extractUrls(List<URL> jars, List<URL> classpaths) {
 		URL[] urls = new URL[jars.size() + classpaths.size()];
 		for (int i = 0; i < jars.size(); i++) {
 			urls[i] = jars.get(i);
@@ -139,6 +157,6 @@ public class JobWithJars {
 		for (int i = 0; i < classpaths.size(); i++) {
 			urls[i + jars.size()] = classpaths.get(i);
 		}
-		return FlinkUserCodeClassLoaders.parentFirst(urls, parent);
+		return urls;
 	}
 }

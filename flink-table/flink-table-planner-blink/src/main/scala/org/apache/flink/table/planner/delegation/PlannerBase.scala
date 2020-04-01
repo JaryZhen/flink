@@ -23,6 +23,7 @@ import org.apache.flink.api.dag.Transformation
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.sql.parser.dml.RichSqlInsert
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment
+import org.apache.flink.table.api.config.ExecutionConfigOptions
 import org.apache.flink.table.api.{TableConfig, TableEnvironment, TableException}
 import org.apache.flink.table.catalog.{CatalogManager, CatalogTable, ConnectorCatalogTable, FunctionCatalog, ObjectPath}
 import org.apache.flink.table.delegation.{Executor, Planner}
@@ -99,7 +100,7 @@ abstract class PlannerBase(
 
   /** Returns the Calcite [[FrameworkConfig]] of this TableEnvironment. */
   @VisibleForTesting
-  private[flink] def getFlinkPlanner: FlinkPlannerImpl = {
+  private[flink] def createFlinkPlanner: FlinkPlannerImpl = {
     val currentCatalogName = catalogManager.getCurrentCatalog
     val currentDatabase = catalogManager.getCurrentDatabase
     plannerContext.createFlinkPlanner(currentCatalogName, currentDatabase)
@@ -121,7 +122,7 @@ abstract class PlannerBase(
   }
 
   override def parse(stmt: String): util.List[Operation] = {
-    val planner = getFlinkPlanner
+    val planner = createFlinkPlanner
     // parse the sql query
     val parsed = planner.parse(stmt)
     parsed match {
@@ -141,15 +142,27 @@ abstract class PlannerBase(
     if (modifyOperations.isEmpty) {
       return List.empty[Transformation[_]]
     }
+    // prepare the execEnv before translating
     mergeParameters()
+    overrideEnvParallelism()
+
     val relNodes = modifyOperations.map(translateToRel)
     val optimizedRelNodes = optimize(relNodes)
     val execNodes = translateToExecNodePlan(optimizedRelNodes)
     translateToPlan(execNodes)
   }
 
+  protected def overrideEnvParallelism(): Unit = {
+    // Use config parallelism to override env parallelism.
+    val defaultParallelism = getTableConfig.getConfiguration.getInteger(
+      ExecutionConfigOptions.TABLE_EXEC_RESOURCE_DEFAULT_PARALLELISM)
+    if (defaultParallelism > 0) {
+      getExecEnv.getConfig.setParallelism(defaultParallelism)
+    }
+  }
+
   override def getCompletionHints(statement: String, position: Int): Array[String] = {
-    val planner = getFlinkPlanner
+    val planner = createFlinkPlanner
     planner.getCompletionHints(statement, position)
   }
 

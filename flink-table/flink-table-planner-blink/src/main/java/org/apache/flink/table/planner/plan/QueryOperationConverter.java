@@ -279,7 +279,8 @@ public class QueryOperationConverter extends QueryOperationDefaultVisitor<RelNod
 					tableFunction,
 					resultType,
 					typeFactory,
-					function);
+					function,
+					scala.Option.empty());
 
 			List<RexNode> parameters = convertToRexNodes(calculatedTable.getParameters());
 
@@ -463,9 +464,15 @@ public class QueryOperationConverter extends QueryOperationDefaultVisitor<RelNod
 				return new RexNodeExpression(convertedNode, ((ResolvedExpression) expr).getOutputDataType());
 			}).collect(Collectors.toList());
 
-			CallExpression newCall = new CallExpression(
+			CallExpression newCall;
+			if (callExpression.getObjectIdentifier().isPresent()) {
+				newCall = new CallExpression(
 					callExpression.getObjectIdentifier().get(), callExpression.getFunctionDefinition(), newChildren,
 					callExpression.getOutputDataType());
+			} else {
+				newCall = new CallExpression(
+					callExpression.getFunctionDefinition(), newChildren, callExpression.getOutputDataType());
+			}
 			return convertExprToRexNode(newCall);
 		}
 

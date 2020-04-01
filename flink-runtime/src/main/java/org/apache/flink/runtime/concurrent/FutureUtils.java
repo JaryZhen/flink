@@ -186,6 +186,61 @@ public class FutureUtils {
 			scheduledExecutor);
 	}
 
+	/**
+	 * Schedule the operation with the given delay.
+	 *
+	 * @param operation to schedule
+	 * @param delay delay to schedule
+	 * @param scheduledExecutor executor to be used for the operation
+	 * @return Future which schedules the given operation with given delay.
+	 */
+	public static CompletableFuture<Void> scheduleWithDelay(
+			final Runnable operation,
+			final Time delay,
+			final ScheduledExecutor scheduledExecutor) {
+		Supplier<Void> operationSupplier = () -> {
+			operation.run();
+			return null;
+		};
+		return scheduleWithDelay(operationSupplier, delay, scheduledExecutor);
+	}
+
+	/**
+	 * Schedule the operation with the given delay.
+	 *
+	 * @param operation to schedule
+	 * @param delay delay to schedule
+	 * @param scheduledExecutor executor to be used for the operation
+	 * @param <T> type of the result
+	 * @return Future which schedules the given operation with given delay.
+	 */
+	public static <T> CompletableFuture<T> scheduleWithDelay(
+			final Supplier<T> operation,
+			final Time delay,
+			final ScheduledExecutor scheduledExecutor) {
+		final CompletableFuture<T> resultFuture = new CompletableFuture<>();
+
+		ScheduledFuture<?> scheduledFuture = scheduledExecutor.schedule(
+			() -> {
+				try {
+					resultFuture.complete(operation.get());
+				} catch (Throwable t) {
+					resultFuture.completeExceptionally(t);
+				}
+			},
+			delay.getSize(),
+			delay.getUnit()
+		);
+
+		resultFuture.whenComplete(
+			(t, throwable) -> {
+				if (!scheduledFuture.isDone()) {
+					scheduledFuture.cancel(false);
+				}
+			});
+		return resultFuture;
+	}
+
 	private static <T> void retryOperationWithDelay(
 			final CompletableFuture<T> resultFuture,
 			final Supplier<CompletableFuture<T>> operation,
@@ -992,6 +1047,23 @@ public class FutureUtils {
 		checkNotNull(completableFuture).whenComplete((ignored, throwable) -> {
 			if (throwable != null) {
 				uncaughtExceptionHandler.uncaughtException(Thread.currentThread(), throwable);
+			}
+		});
+	}
+
+	/**
+	 * Forwards the value from the source future to the target future.
+	 *
+	 * @param source future to forward the value from
+	 * @param target future to forward the value to
+	 * @param <T> type of the value
+	 */
+	public static <T> void forward(CompletableFuture<T> source, CompletableFuture<T> target) {
+		source.whenComplete((value, throwable) -> {
+			if (throwable != null) {
+				target.completeExceptionally(throwable);
+			} else {
+				target.complete(value);
 			}
 		});
 	}

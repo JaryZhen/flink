@@ -181,6 +181,8 @@ public abstract class StreamTask<OUT, OP extends StreamOperator<OUT>>
 	/** The currently active background materialization threads. */
 	private final CloseableRegistry cancelables = new CloseableRegistry();
 
+	private final StreamTaskAsyncExceptionHandler asyncExceptionHandler;
+
 	/**
 	 * Flag to mark the task "in operation", in which case check needs to be initialized to true,
 	 * so that early cancel() before invoke() behaves correctly.
@@ -248,6 +250,7 @@ public abstract class StreamTask<OUT, OP extends StreamOperator<OUT>>
 		this.recordWriters = createRecordWriters(configuration, environment);
 		this.syncSavepointLatch = new SynchronousSavepointLatch();
 		this.mailbox = new MailboxImpl();
+		this.asyncExceptionHandler = new StreamTaskAsyncExceptionHandler(environment);
 	}
 
 	// ------------------------------------------------------------------------
@@ -272,9 +275,29 @@ public abstract class StreamTask<OUT, OP extends StreamOperator<OUT>>
 	 * @param context context object for collaborative interaction between the action and the stream task.
 	 * @throws Exception on any problems in the action.
 	 */
-	protected void performDefaultAction(ActionContext context) throws Exception {
+	protected void processInput(ActionContext context) throws Exception {
 		if (!inputProcessor.processInput()) {
 			context.allActionsCompleted();
+		}
+	}
+
+	private void runAndHandleCancel() throws Exception {
+		try {
+			run();
+		}
+		catch (InterruptedException e) {
+			if (!canceled) {
+				Thread.currentThread().interrupt();
+				throw e;
+			}
+		}
+		catch (Exception e) {
+			if (canceled) {
+				LOG.warn("Error while canceling task.", e);
+			}
+			else {
+				throw e;
+			}
 		}
 	}
 
@@ -295,7 +318,7 @@ public abstract class StreamTask<OUT, OP extends StreamOperator<OUT>>
 				}
 			}
 
-			performDefaultAction(actionContext);
+			processInput(actionContext);
 		}
 	}
 
@@ -400,7 +423,7 @@ public abstract class StreamTask<OUT, OP extends StreamOperator<OUT>>
 
 			// let the task do its work
 			isRunning = true;
-			run();
+			runAndHandleCancel();
 
 			// if this left the run() method cleanly despite the fact that this was canceled,
 			// make sure the "clean shutdown" is not attempted
@@ -926,7 +949,7 @@ public abstract class StreamTask<OUT, OP extends StreamOperator<OUT>>
 	public void handleAsyncException(String message, Throwable exception) {
 		if (isRunning) {
 			// only fail if the task is still running
-			getEnvironment().failExternally(exception);
+			asyncExceptionHandler.handleAsyncException(message, exception);
 		}
 	}
 
@@ -940,6 +963,21 @@ public abstract class StreamTask<OUT, OP extends StreamOperator<OUT>>
 	}
 
 	// ------------------------------------------------------------------------
+
+	/**
+	 * Utility class to encapsulate the handling of asynchronous exceptions.
+	 */
+	static class StreamTaskAsyncExceptionHandler {
+		private final Environment environment;
+
+		StreamTaskAsyncExceptionHandler(Environment environment) {
+			this.environment = environment;
+		}
+
+		void handleAsyncException(String message, Throwable exception) {
+			environment.failExternally(new AsynchronousException(message, exception));
+		}
+	}
 
 	/**
 	 * This runnable executes the asynchronous parts of all involved backend snapshots for the subtask.

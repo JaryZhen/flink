@@ -266,14 +266,14 @@ val esSinkBuilder = new ElasticsearchSink.Builer[String](
 esSinkBuilder.setBulkFlushMaxActions(1)
 
 // provide a RestClientFactory for custom configuration on the internally created REST client
-esSinkBuilder.setRestClientFactory(
-  restClientBuilder -> {
-    restClientBuilder.setDefaultHeaders(...)
-    restClientBuilder.setMaxRetryTimeoutMillis(...)
-    restClientBuilder.setPathPrefix(...)
-    restClientBuilder.setHttpClientConfigCallback(...)
+esSinkBuilder.setRestClientFactory(new RestClientFactory {
+  override def configureRestClientBuilder(restClientBuilder: RestClientBuilder): Unit = {
+       restClientBuilder.setDefaultHeaders(...)
+       restClientBuilder.setMaxRetryTimeoutMillis(...)
+       restClientBuilder.setPathPrefix(...)
+       restClientBuilder.setHttpClientConfigCallback(...)
   }
-)
+})
 
 // finally, build and add the sink to the job's pipeline
 input.addSink(esSinkBuilder.build)
@@ -366,10 +366,10 @@ input.addSink(new ElasticsearchSink<>(
                 int restStatusCode,
                 RequestIndexer indexer) throw Throwable {
 
-            if (ExceptionUtils.containsThrowable(failure, EsRejectedExecutionException.class)) {
+            if (ExceptionUtils.findThrowable(failure, EsRejectedExecutionException.class).isPresent()) {
                 // full queue; re-add document for indexing
                 indexer.add(action);
-            } else if (ExceptionUtils.containsThrowable(failure, ElasticsearchParseException.class)) {
+            } else if (ExceptionUtils.findThrowable(failure, ElasticsearchParseException.class).isPresent()) {
                 // malformed document; simply drop request without failing sink
             } else {
                 // for all other failures, fail the sink
@@ -394,10 +394,10 @@ input.addSink(new ElasticsearchSink(
                 int restStatusCode,
                 RequestIndexer indexer) {
 
-            if (ExceptionUtils.containsThrowable(failure, EsRejectedExecutionException.class)) {
+            if (ExceptionUtils.findThrowable(failure, EsRejectedExecutionException.class).isPresent()) {
                 // full queue; re-add document for indexing
                 indexer.add(action)
-            } else if (ExceptionUtils.containsThrowable(failure, ElasticsearchParseException.class)) {
+            } else if (ExceptionUtils.findThrowable(failure, ElasticsearchParseException.class).isPresent()) {
                 // malformed document; simply drop request without failing sink
             } else {
                 // for all other failures, fail the sink

@@ -130,7 +130,6 @@ under the License.
 			<scope>provided</scope>
 		</dependency>
 
-		<!-- Used for code generation -->
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-cep_${scala.binary.version}</artifactId>
@@ -138,6 +137,7 @@ under the License.
 			<scope>provided</scope>
 		</dependency>
 
+		<!-- Used for code generation -->
 		<dependency>
 			<groupId>org.codehaus.janino</groupId>
 			<artifactId>janino</artifactId>
@@ -268,6 +268,33 @@ under the License.
 		</dependency>
 	</dependencies>
 
+	<profiles>
+		<profile>
+			<id>use-jackson-2.10.1</id>
+			<dependencyManagement>
+				<dependencies>
+					<dependency>
+						<groupId>com.fasterxml.jackson.core</groupId>
+						<artifactId>jackson-annotations</artifactId>
+						<version>2.10.1</version>
+					</dependency>
+
+					<dependency>
+						<groupId>com.fasterxml.jackson.core</groupId>
+						<artifactId>jackson-databind</artifactId>
+						<version>2.10.1</version>
+					</dependency>
+
+					<dependency>
+						<groupId>com.fasterxml.jackson.core</groupId>
+						<artifactId>jackson-core</artifactId>
+						<version>2.10.1</version>
+					</dependency>
+				</dependencies>
+			</dependencyManagement>
+		</profile>
+	</profiles>
+
 	<build>
 		<plugins>
 			<!-- Scala Compiler -->
@@ -339,9 +366,10 @@ under the License.
 									<include>commons-codec:commons-codec</include>
 
 									<!-- flink-table-planner dependencies -->
-									<include>org.apache.flink.sql.parser:*</include>
+									<include>org.apache.flink:flink-sql-parser</include>
 									<include>org.codehaus.janino:*</include>
 									<include>joda-time:*</include>
+									<include>joda-convert:*</include>
 								</includes>
 							</artifactSet>
 							<relocations>
@@ -371,8 +399,8 @@ under the License.
 
 								<!-- flink-table-planner dependencies -->
 								<relocation>
-									<pattern>org.joda.time</pattern>
-									<shadedPattern>org.apache.flink.table.shaded.org.joda.time</shadedPattern>
+									<pattern>org.joda</pattern>
+									<shadedPattern>org.apache.flink.table.shaded.org.joda</shadedPattern>
 								</relocation>
 								<!-- not relocated for now, because we need to change the contents of the properties field otherwise -->
 								<!--<relocation>

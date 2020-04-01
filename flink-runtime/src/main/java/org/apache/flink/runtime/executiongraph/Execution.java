@@ -56,6 +56,7 @@ import org.apache.flink.runtime.messages.StackTraceSampleResponse;
 import org.apache.flink.runtime.shuffle.PartitionDescriptor;
 import org.apache.flink.runtime.shuffle.ProducerDescriptor;
 import org.apache.flink.runtime.shuffle.ShuffleDescriptor;
+import org.apache.flink.runtime.shuffle.ShuffleMaster;
 import org.apache.flink.runtime.state.KeyGroupRangeAssignment;
 import org.apache.flink.runtime.taskmanager.TaskManagerLocation;
 import org.apache.flink.util.ExceptionUtils;
@@ -72,6 +73,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -631,19 +633,12 @@ public class Execution implements AccessExecution, Archiveable<ArchivedExecution
 				.getShuffleMaster()
 				.registerPartitionWithProducer(partitionDescriptor, producerDescriptor);
 
-			final boolean releasePartitionOnConsumption =
-				vertex.getExecutionGraph().isForcePartitionReleaseOnConsumption()
-				|| !partitionDescriptor.getPartitionType().isBlocking();
-
 			CompletableFuture<ResultPartitionDeploymentDescriptor> partitionRegistration = shuffleDescriptorFuture
 				.thenApply(shuffleDescriptor -> new ResultPartitionDeploymentDescriptor(
 					partitionDescriptor,
 					shuffleDescriptor,
 					maxParallelism,
-					lazyScheduling,
-					releasePartitionOnConsumption
-						? ShuffleDescriptor.ReleaseType.AUTO
-						: ShuffleDescriptor.ReleaseType.MANUAL));
+					lazyScheduling));
 			partitionRegistrations.add(partitionRegistration);
 		}
 
@@ -789,8 +784,21 @@ public class Execution implements AccessExecution, Archiveable<ArchivedExecution
 				// else: fall through the loop
 			}
 
-			else if (current == FINISHED || current == FAILED) {
-				// nothing to do any more. finished/failed before it could be cancelled.
+			else if (current == FINISHED) {
+				// finished before it could be cancelled.
+				// in any case, the task is removed from the TaskManager already
+
+				// a pipelined partition whose consumer has never been deployed could still be buffered on the TM
+				// release it here since pipelined partitions for FINISHED executions aren't handled elsewhere
+				// covers the following cases:
+				// 		a) restarts of this vertex
+				// 		b) a global failure (which may result in a FAILED job state)
+				sendReleaseIntermediateResultPartitionsRpcCall();
+
+				return;
+			}
+			else if (current == FAILED) {
+				// failed before it could be cancelled.
 				// in any case, the task is removed from the TaskManager already
 
 				return;
@@ -823,6 +831,11 @@ public class Execution implements AccessExecution, Archiveable<ArchivedExecution
 				completeCancelling();
 				break;
 			case FINISHED:
+				// a pipelined partition whose consumer has never been deployed could still be buffered on the TM
+				// release it here since pipelined partitions for FINISHED executions aren't handled elsewhere
+				// most notably, the TaskExecutor does not release pipelined partitions when disconnecting from the JM
+				sendReleaseIntermediateResultPartitionsRpcCall();
+				break;
 			case FAILED:
 			case CANCELED:
 				break;
@@ -849,10 +862,19 @@ public class Execution implements AccessExecution, Archiveable<ArchivedExecution
 	void scheduleOrUpdateConsumers(List<List<ExecutionEdge>> allConsumers) {
 		assertRunningInJobMasterMainThread();
 
-		final int numConsumers = allConsumers.size();
-		if (numConsumers > 1) {
+		final HashSet<ExecutionVertex> consumerDeduplicator = new HashSet<>();
+		scheduleOrUpdateConsumers(allConsumers, consumerDeduplicator);
+	}
+
+	private void scheduleOrUpdateConsumers(
+			final List<List<ExecutionEdge>> allConsumers,
+			final HashSet<ExecutionVertex> consumerDeduplicator) {
+
+		if (allConsumers.size() == 0) {
+			return;
+		}
+		if (allConsumers.size() > 1) {
 			fail(new IllegalStateException("Currently, only a single consumer group per partition is supported."));
-		} else if (numConsumers == 0) {
 			return;
 		}
 
@@ -862,8 +884,7 @@ public class Execution implements AccessExecution, Archiveable<ArchivedExecution
 			final ExecutionState consumerState = consumer.getState();
 
 			// ----------------------------------------------------------------
-			// Consumer is created => try to schedule it and the partition info
-			// is known during deployment
+			// Consumer is created => needs to be scheduled
 			// ----------------------------------------------------------------
 			if (consumerState == CREATED) {
 				// Schedule the consumer vertex if its inputs constraint is satisfied, otherwise skip the scheduling.
@@ -871,8 +892,11 @@ public class Execution implements AccessExecution, Archiveable<ArchivedExecution
 				// at least one of the consumer vertex's inputs is consumable here. This is to avoid the
 				// O(N) complexity introduced by input constraint check for InputDependencyConstraint.ANY,
 				// as we do not want the default scheduling performance to be affected.
-				if (consumerVertex.getInputDependencyConstraint() == InputDependencyConstraint.ANY ||
-						consumerVertex.checkInputDependencyConstraints()) {
+
+				if (consumerDeduplicator.add(consumerVertex) &&
+						(consumerVertex.getInputDependencyConstraint() == InputDependencyConstraint.ANY ||
+						consumerVertex.checkInputDependencyConstraints())) {
+
 					scheduleConsumer(consumerVertex);
 				}
 			}
@@ -1021,7 +1045,9 @@ public class Execution implements AccessExecution, Archiveable<ArchivedExecution
 	}
 
 	void markFailed(Throwable t, Map<String, Accumulator<?, ?>> userAccumulators, IOMetrics metrics) {
-		processFail(t, true, userAccumulators, metrics);
+		// skip release of partitions since this is only called if the TM actually sent the FAILED state update
+		// in this case all partitions have already been cleaned up
+		processFail(t, true, userAccumulators, metrics, false);
 	}
 
 	@VisibleForTesting
@@ -1041,21 +1067,9 @@ public class Execution implements AccessExecution, Archiveable<ArchivedExecution
 
 				if (transitionState(current, FINISHED)) {
 					try {
-						for (IntermediateResultPartition finishedPartition
-								: getVertex().finishAllBlockingPartitions()) {
-
-							IntermediateResultPartition[] allPartitions = finishedPartition
-									.getIntermediateResult().getPartitions();
-
-							for (IntermediateResultPartition partition : allPartitions) {
-								scheduleOrUpdateConsumers(partition.getConsumers());
-							}
-						}
-
+						finishPartitionsAndScheduleOrUpdateConsumers();
 						updateAccumulatorsAndMetrics(userAccumulators, metrics);
-
 						releaseAssignedResource(null);
-
 						vertex.getExecutionGraph().deregisterExecution(this);
 					}
 					finally {
@@ -1067,7 +1081,7 @@ public class Execution implements AccessExecution, Archiveable<ArchivedExecution
 			else if (current == CANCELING) {
 				// we sent a cancel call, and the task manager finished before it arrived. We
 				// will never get a CANCELED call back from the job manager
-				completeCancelling(userAccumulators, metrics);
+				completeCancelling(userAccumulators, metrics, true);
 				return;
 			}
 			else if (current == CANCELED || current == FAILED) {
@@ -1080,6 +1094,24 @@ public class Execution implements AccessExecution, Archiveable<ArchivedExecution
 				// this should not happen, we need to fail this
 				markFailed(new Exception("Vertex received FINISHED message while being in state " + state));
 				return;
+			}
+		}
+	}
+
+	private void finishPartitionsAndScheduleOrUpdateConsumers() {
+		final List<IntermediateResultPartition> newlyFinishedResults = getVertex().finishAllBlockingPartitions();
+		if (newlyFinishedResults.isEmpty()) {
+			return;
+		}
+
+		final HashSet<ExecutionVertex> consumerDeduplicator = new HashSet<>();
+
+		for (IntermediateResultPartition finishedPartition : newlyFinishedResults) {
+			final IntermediateResultPartition[] allPartitionsOfNewlyFinishedResults =
+					finishedPartition.getIntermediateResult().getPartitions();
+
+			for (IntermediateResultPartition partition : allPartitionsOfNewlyFinishedResults) {
+				scheduleOrUpdateConsumers(partition.getConsumers(), consumerDeduplicator);
 			}
 		}
 	}
@@ -1104,10 +1136,10 @@ public class Execution implements AccessExecution, Archiveable<ArchivedExecution
 	}
 
 	void completeCancelling() {
-		completeCancelling(null, null);
+		completeCancelling(null, null, true);
 	}
 
-	void completeCancelling(Map<String, Accumulator<?, ?>> userAccumulators, IOMetrics metrics) {
+	void completeCancelling(Map<String, Accumulator<?, ?>> userAccumulators, IOMetrics metrics, boolean releasePartitions) {
 
 		// the taskmanagers can themselves cancel tasks without an external trigger, if they find that the
 		// network stack is canceled (for example by a failing / canceling receiver or sender
@@ -1125,7 +1157,7 @@ public class Execution implements AccessExecution, Archiveable<ArchivedExecution
 				updateAccumulatorsAndMetrics(userAccumulators, metrics);
 
 				if (transitionState(current, CANCELED)) {
-					finishCancellation();
+					finishCancellation(releasePartitions);
 					return;
 				}
 
@@ -1144,11 +1176,10 @@ public class Execution implements AccessExecution, Archiveable<ArchivedExecution
 		}
 	}
 
-	private void finishCancellation() {
+	private void finishCancellation(boolean releasePartitions) {
 		releaseAssignedResource(new FlinkException("Execution " + this + " was cancelled."));
 		vertex.getExecutionGraph().deregisterExecution(this);
-		// release partitions on TM in case the Task finished while we where already CANCELING
-		stopTrackingAndReleasePartitions();
+		handlePartitionCleanup(releasePartitions, releasePartitions);
 	}
 
 	void cachePartitionInfo(PartitionInfo partitionInfo) {
@@ -1168,10 +1199,10 @@ public class Execution implements AccessExecution, Archiveable<ArchivedExecution
 	// --------------------------------------------------------------------------------------------
 
 	private boolean processFail(Throwable t, boolean isCallback) {
-		return processFail(t, isCallback, null, null);
+		return processFail(t, isCallback, null, null, true);
 	}
 
-	private boolean processFail(Throwable t, boolean isCallback, Map<String, Accumulator<?, ?>> userAccumulators, IOMetrics metrics) {
+	private boolean processFail(Throwable t, boolean isCallback, Map<String, Accumulator<?, ?>> userAccumulators, IOMetrics metrics, boolean releasePartitions) {
 		// damn, we failed. This means only that we keep our books and notify our parent JobExecutionVertex
 		// the actual computation on the task manager is cleaned up by the TaskManager that noticed the failure
 
@@ -1195,7 +1226,7 @@ public class Execution implements AccessExecution, Archiveable<ArchivedExecution
 			}
 
 			if (current == CANCELING) {
-				completeCancelling(userAccumulators, metrics);
+				completeCancelling(userAccumulators, metrics, true);
 				return false;
 			}
 
@@ -1207,7 +1238,7 @@ public class Execution implements AccessExecution, Archiveable<ArchivedExecution
 
 				releaseAssignedResource(t);
 				vertex.getExecutionGraph().deregisterExecution(this);
-				stopTrackingAndReleasePartitions();
+				handlePartitionCleanup(releasePartitions, releasePartitions);
 
 				if (!isCallback && (current == RUNNING || current == DEPLOYING)) {
 					if (LOG.isDebugEnabled()) {
@@ -1312,16 +1343,51 @@ public class Execution implements AccessExecution, Archiveable<ArchivedExecution
 		}
 	}
 
-	void stopTrackingAndReleasePartitions() {
+	void handlePartitionCleanup(boolean releasePipelinedPartitions, boolean releaseBlockingPartitions) {
+		if (releasePipelinedPartitions) {
+			sendReleaseIntermediateResultPartitionsRpcCall();
+		}
+
+		final Collection<ResultPartitionID> partitionIds = getPartitionIds();
+		final PartitionTracker partitionTracker = getVertex().getExecutionGraph().getPartitionTracker();
+
+		if (!partitionIds.isEmpty()) {
+			if (releaseBlockingPartitions) {
+				LOG.info("Discarding the results produced by task execution {}.", attemptId);
+				partitionTracker.stopTrackingAndReleasePartitions(partitionIds);
+			} else {
+				partitionTracker.stopTrackingPartitions(partitionIds);
+			}
+		}
+	}
+
+	private Collection<ResultPartitionID> getPartitionIds() {
+		return producedPartitions.values().stream()
+			.map(ResultPartitionDeploymentDescriptor::getShuffleDescriptor)
+			.map(ShuffleDescriptor::getResultPartitionID)
+			.collect(Collectors.toList());
+	}
+
+	private void sendReleaseIntermediateResultPartitionsRpcCall() {
 		LOG.info("Discarding the results produced by task execution {}.", attemptId);
-		if (producedPartitions != null && producedPartitions.size() > 0) {
-			final PartitionTracker partitionTracker = getVertex().getExecutionGraph().getPartitionTracker();
-			final List<ResultPartitionID> producedPartitionIds = producedPartitions.values().stream()
+		final LogicalSlot slot = assignedResource;
+
+		if (slot != null) {
+			final TaskManagerGateway taskManagerGateway = slot.getTaskManagerGateway();
+
+			final ShuffleMaster<?> shuffleMaster = getVertex().getExecutionGraph().getShuffleMaster();
+
+			Collection<ResultPartitionID> partitionIds = producedPartitions.values().stream()
+				.filter(resultPartitionDeploymentDescriptor -> resultPartitionDeploymentDescriptor.getPartitionType().isPipelined())
 				.map(ResultPartitionDeploymentDescriptor::getShuffleDescriptor)
+				.peek(shuffleMaster::releasePartitionExternally)
 				.map(ShuffleDescriptor::getResultPartitionID)
 				.collect(Collectors.toList());
 
-			partitionTracker.stopTrackingAndReleasePartitions(producedPartitionIds);
+			if (!partitionIds.isEmpty()) {
+				// TODO For some tests this could be a problem when querying too early if all resources were released
+				taskManagerGateway.releasePartitions(getVertex().getJobId(), partitionIds);
+			}
 		}
 	}
 
@@ -1345,8 +1411,8 @@ public class Execution implements AccessExecution, Archiveable<ArchivedExecution
 				(ack, failure) -> {
 					// fail if there was a failure
 					if (failure != null) {
-						fail(new IllegalStateException("Update task on TaskManager " + taskManagerLocation +
-							" failed due to:", failure));
+						fail(new IllegalStateException("Update to task [" + getVertexWithAttempt() +
+							"] on TaskManager " + taskManagerLocation + " failed", failure));
 					}
 				}, getVertex().getExecutionGraph().getJobMasterMainThreadExecutor());
 		}

@@ -171,7 +171,12 @@ object UserDefinedFunctionUtils {
       case (t: DataType, i) =>
         // we don't trust GenericType.
         if (fromDataTypeToLogicalType(t).getTypeRoot == LogicalTypeRoot.ANY) {
-          fromLogicalTypeToDataType(expectedTypes(i))
+          val returnType = fromLogicalTypeToDataType(expectedTypes(i))
+          if (expectedTypes(i).supportsOutputConversion(t.getConversionClass)) {
+            returnType.bridgedTo(t.getConversionClass)
+          } else {
+            returnType
+          }
         } else {
           t
         }
@@ -749,6 +754,10 @@ object UserDefinedFunctionUtils {
     }
   }
 
+  def getOperandTypeArray(callBinding: SqlOperatorBinding): Array[LogicalType] = {
+    getOperandType(callBinding).toArray
+  }
+
   def getOperandType(callBinding: SqlOperatorBinding): Seq[LogicalType] = {
     val operandTypes = for (i <- 0 until callBinding.getOperandCount)
       yield callBinding.getOperandType(i)
@@ -793,7 +802,7 @@ object UserDefinedFunctionUtils {
     }.toArray
   }
 
-  private[table] def buildRelDataType(
+  def buildRelDataType(
       typeFactory: RelDataTypeFactory,
       resultType: LogicalType,
       fieldNames: Array[String],

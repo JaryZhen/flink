@@ -120,7 +120,7 @@ under the License.
 		<chill.version>0.7.6</chill.version>
 		<zookeeper.version>3.4.10</zookeeper.version>
 		<curator.version>2.12.0</curator.version>
-		<jackson.version>2.9.8</jackson.version>
+		<jackson.version>2.10.1</jackson.version>
 		<metrics.version>3.1.5</metrics.version>
 		<prometheus.version>0.3.0</prometheus.version>
 		<avro.version>1.8.2</avro.version>
@@ -264,13 +264,13 @@ under the License.
 			<dependency>
 				<groupId>org.apache.flink</groupId>
 				<artifactId>flink-shaded-jackson</artifactId>
-				<version>${jackson.version}-${flink.shaded.version}</version>
+				<version>${jackson.version}-9.0</version>
 			</dependency>
 
 			<dependency>
 				<groupId>org.apache.flink</groupId>
 				<artifactId>flink-shaded-jackson-module-jsonSchema</artifactId>
-				<version>${jackson.version}-${flink.shaded.version}</version>
+				<version>${jackson.version}-9.0</version>
 			</dependency>
 
 			<dependency>
@@ -540,12 +540,6 @@ under the License.
 			</dependency>
 
 			<dependency>
-				<groupId>com.typesafe.akka</groupId>
-				<artifactId>akka-camel_${scala.binary.version}</artifactId>
-				<version>${akka.version}</version>
-			</dependency>
-
-			<dependency>
 				<groupId>org.scala-lang.modules</groupId>
 				<artifactId>scala-parser-combinators_${scala.binary.version}</artifactId>
 				<version>1.1.1</version>
@@ -749,6 +743,31 @@ under the License.
 		</profile>
 
 		<profile>
+			<id>use-jackson-2.10.1</id>
+			<dependencyManagement>
+				<dependencies>
+					<dependency>
+						<groupId>com.fasterxml.jackson.core</groupId>
+						<artifactId>jackson-annotations</artifactId>
+						<version>2.10.1</version>
+					</dependency>
+
+					<dependency>
+						<groupId>com.fasterxml.jackson.core</groupId>
+						<artifactId>jackson-databind</artifactId>
+						<version>2.10.1</version>
+					</dependency>
+
+					<dependency>
+						<groupId>com.fasterxml.jackson.core</groupId>
+						<artifactId>jackson-core</artifactId>
+						<version>2.10.1</version>
+					</dependency>
+				</dependencies>
+			</dependencyManagement>
+		</profile>
+
+		<profile>
 			<id>java9</id>
 			<activation>
 				<jdk>9</jdk>
@@ -761,11 +780,6 @@ under the License.
 							<groupId>org.codehaus.mojo</groupId>
 							<artifactId>build-helper-maven-plugin</artifactId>
 							<version>1.7</version>
-						</plugin>
-						<plugin>
-							<groupId>org.apache.maven.plugins</groupId>
-							<artifactId>maven-shade-plugin</artifactId>
-							<version>3.1.1</version>
 						</plugin>
 						<plugin>
 							<groupId>com.github.siom79.japicmp</groupId>
@@ -1334,8 +1348,10 @@ under the License.
 						<exclude>flink-formats/flink-avro/src/test/resources/avro/*.avsc</exclude>
 						<exclude>out/test/flink-avro/avro/user.avsc</exclude>
 						<exclude>flink-table/flink-table-planner/src/test/scala/resources/*.out</exclude>
+						<exclude>flink-table/flink-table-planner-blink/src/test/resources/digest/*.out</exclude>
+						<exclude>flink-table/flink-table-planner-blink/src/test/resources/explain/*.out</exclude>
 						<exclude>flink-yarn/src/test/resources/krb5.keytab</exclude>
-						<exclude>flink-end-to-end-tests/test-scripts/test-data/*</exclude>
+						<exclude>flink-end-to-end-tests/test-scripts/test-data/**</exclude>
 						<exclude>flink-end-to-end-tests/test-scripts/docker-hadoop-secure-cluster/config/keystore.jks</exclude>
 						<exclude>flink-connectors/flink-connector-kafka/src/test/resources/**</exclude>
 						<exclude>flink-connectors/flink-connector-kafka-0.11/src/test/resources/**</exclude>
@@ -1561,6 +1577,7 @@ under the License.
 								<!-- The ApacheNoticeResourceTransformer collects and aggregates NOTICE files -->
 								<transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer">
 									<projectName>Apache Flink</projectName>
+									<encoding>UTF-8</encoding>
 								</transformer>
 							</transformers>
 						</configuration>
@@ -1657,7 +1674,7 @@ under the License.
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-shade-plugin</artifactId>
-					<version>3.0.0</version>
+					<version>3.1.1</version>
 				</plugin>
 
 				<plugin>
@@ -1773,6 +1790,9 @@ under the License.
 						<args>
 							<arg>-nobootcp</arg>
 						</args>
+						<jvmArgs>
+							<arg>-Xss2m</arg>
+						</jvmArgs>
 					</configuration>
 				</plugin>
 

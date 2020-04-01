@@ -96,17 +96,13 @@ class ExpressionReducer(
       resultType,
       EMPTY_ROW_TYPE)
 
-    val function = generatedFunction.newInstance(getClass.getClassLoader)
+    val function = generatedFunction.newInstance(Thread.currentThread().getContextClassLoader)
     val richMapFunction = function match {
       case r: RichMapFunction[GenericRow, GenericRow] => r
       case _ => throw new TableException("RichMapFunction[GenericRow, GenericRow] required here")
     }
 
-    val parameters = if (config.getConfiguration != null) {
-      config.getConfiguration
-    } else {
-      new Configuration()
-    }
+    val parameters = config.getConfiguration
     val reduced = try {
       richMapFunction.open(parameters)
       // execute

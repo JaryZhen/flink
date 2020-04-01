@@ -133,6 +133,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -176,6 +177,32 @@ public class StreamTaskTest extends TestLogger {
 
 	@Rule
 	public final Timeout timeoutPerTest = Timeout.seconds(30);
+
+	/**
+	 * This test checks the async exceptions handling wraps the message and cause as an AsynchronousException
+	 * and propagates this to the environment.
+	 */
+	@Test
+	public void streamTaskAsyncExceptionHandler_handleException_forwardsMessageProperly() {
+		MockEnvironment mockEnvironment = MockEnvironment.builder().build();
+		RuntimeException expectedException = new RuntimeException("RUNTIME EXCEPTION");
+
+		final StreamTask.StreamTaskAsyncExceptionHandler asyncExceptionHandler = new StreamTask.StreamTaskAsyncExceptionHandler(mockEnvironment);
+
+		mockEnvironment.setExpectedExternalFailureCause(AsynchronousException.class);
+		final String expectedErrorMessage = "EXPECTED_ERROR MESSAGE";
+
+		asyncExceptionHandler.handleAsyncException(expectedErrorMessage, expectedException);
+
+		// expect an AsynchronousException containing the supplied error details
+		Optional<? extends Throwable> actualExternalFailureCause = mockEnvironment.getActualExternalFailureCause();
+		final Throwable actualException = actualExternalFailureCause
+			.orElseThrow(() -> new AssertionError("Expected exceptional completion"));
+
+		assertThat(actualException, instanceOf(AsynchronousException.class));
+		assertThat(actualException.getMessage(), is("EXPECTED_ERROR MESSAGE"));
+		assertThat(actualException.getCause(), is(expectedException));
+	}
 
 	/**
 	 * This test checks that cancel calls that are issued before the operator is
@@ -455,11 +482,23 @@ public class StreamTaskTest extends TestLogger {
 		CheckpointResponder checkpointResponder = mock(CheckpointResponder.class);
 		doAnswer(new Answer() {
 			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
+			public Object answer(InvocationOnMock invocation) {
 				acknowledgeCheckpointLatch.trigger();
 
 				// block here so that we can issue the concurrent cancel call
-				completeAcknowledge.await();
+				while (true) {
+					try {
+						// wait until we successfully await (no pun intended)
+						completeAcknowledge.await();
+
+						// when await() returns normally, we break out of the loop
+						break;
+					} catch (InterruptedException e) {
+						// survive interruptions that arise from thread pool shutdown
+						// production code cannot actually throw InterruptedException from
+						// checkpoint acknowledgement
+					}
+				}
 
 				return null;
 			}
@@ -828,7 +867,7 @@ public class StreamTaskTest extends TestLogger {
 		protected void init() throws Exception {}
 
 		@Override
-		protected void performDefaultAction(ActionContext context) throws Exception {
+		protected void processInput(ActionContext context) throws Exception {
 			context.allActionsCompleted();
 		}
 
@@ -1035,7 +1074,7 @@ public class StreamTaskTest extends TestLogger {
 		}
 
 		@Override
-		protected void performDefaultAction(ActionContext context) {
+		protected void processInput(ActionContext context) {
 			if (isCanceled() || inputFinished) {
 				context.allActionsCompleted();
 			}
@@ -1072,7 +1111,7 @@ public class StreamTaskTest extends TestLogger {
 		}
 
 		@Override
-		protected void performDefaultAction(ActionContext context) throws Exception {
+		protected void processInput(ActionContext context) throws Exception {
 			if (fail) {
 				throw new RuntimeException();
 			}
@@ -1160,7 +1199,7 @@ public class StreamTaskTest extends TestLogger {
 		protected void init() {}
 
 		@Override
-		protected void performDefaultAction(ActionContext context) throws Exception {
+		protected void processInput(ActionContext context) throws Exception {
 			holder = new LockHolder(getCheckpointLock(), latch);
 			holder.start();
 			latch.await();
@@ -1205,7 +1244,7 @@ public class StreamTaskTest extends TestLogger {
 		protected void init() {}
 
 		@Override
-		protected void performDefaultAction(ActionContext context) throws Exception {
+		protected void processInput(ActionContext context) throws Exception {
 			final OneShotLatch latch = new OneShotLatch();
 			final Object lock = new Object();
 
@@ -1271,9 +1310,9 @@ public class StreamTaskTest extends TestLogger {
 		}
 
 		@Override
-		protected void performDefaultAction(ActionContext context) throws Exception {
+		protected void processInput(ActionContext context) throws Exception {
 			syncLatch.await();
-			super.performDefaultAction(context);
+			super.processInput(context);
 		}
 	}
 

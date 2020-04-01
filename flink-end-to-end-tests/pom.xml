@@ -41,6 +41,7 @@ under the License.
 		<module>flink-dataset-allround-test</module>
 		<module>flink-dataset-fine-grained-recovery-test</module>
 		<module>flink-datastream-allround-test</module>
+		<module>flink-batch-sql-test</module>
 		<module>flink-stream-sql-test</module>
 		<module>flink-bucketing-sink-test</module>
 		<module>flink-distributed-cache-via-blob-test</module>
@@ -57,7 +58,6 @@ under the License.
 		<module>flink-sql-client-test</module>
 		<module>flink-streaming-file-sink-test</module>
 		<module>flink-state-evolution-test</module>
-		<module>flink-e2e-test-utils</module>
 		<module>flink-end-to-end-tests-common</module>
 		<module>flink-metrics-availability-test</module>
 		<module>flink-metrics-reporter-prometheus-test</module>
@@ -68,6 +68,7 @@ under the License.
 		<module>flink-streaming-kafka011-test</module>
 		<module>flink-streaming-kafka010-test</module>
 		<module>flink-plugins-test</module>
+		<module>flink-tpch-test</module>
 	</modules>
 
 	<!-- See main pom.xml for explanation of profiles -->

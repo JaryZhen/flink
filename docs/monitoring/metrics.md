@@ -433,7 +433,7 @@ You can configure which delimiter to use for the identifier (default: `.`) by se
 
 ### User Scope
 
-You can define a user scope by calling `MetricGroup#addGroup(String name)`, `MetricGroup#addGroup(int name)` or `Metric#addGroup(String key, String value)`.
+You can define a user scope by calling `MetricGroup#addGroup(String name)`, `MetricGroup#addGroup(int name)` or `MetricGroup#addGroup(String key, String value)`.
 These methods affect what `MetricGroup#getMetricIdentifier` and `MetricGroup#getScopeComponents` return.
 
 <div class="codetabs" markdown="1">
@@ -1028,10 +1028,10 @@ Thus, in order to infer the metric identifier:
       <td>Gauge</td>
     </tr>
     <tr>
-      <th rowspan="8">Task</th>
-      <td rowspan="4">buffers</td>
+      <th rowspan="10">Task</th>
+      <td rowspan="6">buffers</td>
       <td>inputQueueLength</td>
-      <td>The number of queued input buffers.</td>
+      <td>The number of queued input buffers. (ignores LocalInputChannels which are using blocking subpartitions)</td>
       <td>Gauge</td>
     </tr>
     <tr>
@@ -1041,17 +1041,17 @@ Thus, in order to infer the metric identifier:
     </tr>
     <tr>
       <td>inPoolUsage</td>
-      <td>An estimate of the input buffers usage.</td>
+      <td>An estimate of the input buffers usage. (ignores LocalInputChannels)</td>
       <td>Gauge</td>
     </tr>
     <tr>
       <td>inputFloatingBuffersUsage</td>
-      <td>An estimate of the floating input buffers usage, dediciated for credit-based mode.</td>
+      <td>An estimate of the floating input buffers usage, dedicated for credit-based mode. (ignores LocalInputChannels)</td>
       <td>Gauge</td>
     </tr>
     <tr>
       <td>inputExclusiveBuffersUsage</td>
-      <td>An estimate of the exclusive input buffers usage, dediciated for credit-based mode.</td>
+      <td>An estimate of the exclusive input buffers usage, dedicated for credit-based mode. (ignores LocalInputChannels)</td>
       <td>Gauge</td>
     </tr>
     <tr>
@@ -1271,7 +1271,10 @@ Metrics related to data exchange between task executors using netty network comm
     </tr>
     <tr>
       <td>fullRestarts</td>
-      <td>The total number of full restarts since this job was submitted.</td>
+      <td>
+        The total number of full restarts since this job was submitted.
+        <span class="label label-danger">Attention:</span> Since 1.9.2, this metric also includes fine-grained restarts.
+      </td>
       <td>Gauge</td>
     </tr>
   </tbody>
